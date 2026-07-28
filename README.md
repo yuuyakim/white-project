@@ -65,11 +65,28 @@ draft: false     # true で本番ビルドから除外
 本文
 ```
 
+## デプロイ
+
+Cloudflare Pages のGitHub連携で公開している。`main` にpushすると自動でビルドされて反映される。手元からのデプロイ操作は不要。
+
+Cloudflare側の設定:
+
+| 項目 | 値 |
+|---|---|
+| リポジトリ | `yuuyakim/white-project` |
+| 本番ブランチ | `main` |
+| ビルドコマンド | `npm run build` |
+| 出力ディレクトリ | `dist` |
+
+**`.node-version` を消さないこと。** Astro 7 は Node 22.12 以上を要求するが、Cloudflare Pages の既定はそれより古い。このファイルが無いとビルドが落ちる。
+
+作業は `feature/*` ブランチで行い、`main` へのマージで公開される。`main` に直接コミットすると即座に本番へ出る。
+
 ## 公開前にやること
 
 - [ ] `src/data/shop.ts` の各会場の**正確な住所**を店主に確認して差し替える（現在「住所確認中」）
 - [ ] メニューの**価格**を確認して差し替える（現在は仮の値）
 - [ ] 問い合わせ用の**メールアドレス**を確認して差し替える
-- [ ] `astro.config.mjs` の `site` を実ドメインに差し替える（現在 `https://example.com`）
 - [ ] `public/ogp.svg` を 1200x630 のJPEGに差し替える（SVGをOGPサムネイルとして表示しないSNSがある）
 - [ ] `src/assets/images/` のプレースホルダSVGを実写に差し替える
+- [ ] 独自ドメインを取得したら `astro.config.mjs` の `site` を差し替える（現在は `https://white-project.pages.dev`）
