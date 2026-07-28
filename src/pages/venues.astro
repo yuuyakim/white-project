@@ -16,7 +16,7 @@ import { shop } from '../data/shop';
     決まったお店を持たず、曜日によって場所が変わります。お越しになる前に曜日と時間をご確認ください。
   </p>
 
-  <TodayVenue />
+  <TodayVenue inset={false} />
 
   <div class="venues">
     {shop.venues.map((venue) => <VenueCard venue={venue} showMap />)}
@@ -42,19 +42,6 @@ import { shop } from '../data/shop';
 
   .payments {
     margin-top: var(--space-xl);
-  }
-
-  /*
-   * TodayVenue は自前で max-width / padding-inline を持つ。
-   * main は既に padding-inline: var(--space-md) を持つため、ここに
-   * 素の `.today {}` を書いても Astro の scoped CSS は
-   * TodayVenue 側の data-astro-cid にしか一致せず効かない
-   * （TodayVenue は props を受け取らないため class を渡して
-   * 親のスコープを継承させる手段もない）。:global() で
-   * スコープを外して確実に上書きする。
-   */
-  :global(.today) {
-    padding-inline: 0;
   }
 
   @media (min-width: 900px) {

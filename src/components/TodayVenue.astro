@@ -1,8 +1,16 @@
 ---
 import { shop } from '../data/shop';
+
+type Props = {
+  /** false のとき、コンポーネント自身の左右余白と最大幅を外す。
+      main が既に余白と最大幅を持つページ（/venues）で使う */
+  inset?: boolean;
+};
+
+const { inset = true } = Astro.props;
 ---
 
-<section class="today" aria-labelledby="today-heading">
+<section class:list={['today', { 'is-flush': !inset }]} aria-labelledby="today-heading">
   <p class="u-label">Today</p>
   <p class="lead" id="today-heading" data-today-lead>本日の出店場所</p>
 
@@ -54,6 +62,11 @@ import { shop } from '../data/shop';
     max-width: var(--max-width);
     margin-inline: auto;
     padding: var(--space-xl) var(--space-md) 0;
+  }
+
+  .today.is-flush {
+    padding-inline: 0;
+    max-width: none;
   }
 
   .lead {
