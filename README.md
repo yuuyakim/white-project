@@ -94,4 +94,4 @@ Cloudflare側の設定:
 - [ ] 問い合わせ用の**メールアドレス**を確認して差し替える
 - [ ] `public/ogp.svg` を 1200x630 のJPEGに差し替える（SVGをOGPサムネイルとして表示しないSNSがある）
 - [ ] `src/assets/images/` のプレースホルダSVGを実写に差し替える。差し替えたら `Hero.astro` の `alt=""` にも実際の写真を説明するalt textを入れる
-- [ ] 独自ドメインを取得したら `astro.config.mjs` の `site` を差し替える（現在は `https://white-project.pages.dev`）
+公開URLは `https://white-project.yuuyakim.com`（カスタムドメイン）。`workers.dev` のサブドメインは無効にしてあるため、ここが唯一の入口。`astro.config.mjs` の `site` と `wrangler.jsonc` の `name` はCloudflare側の設定と一致させること。
