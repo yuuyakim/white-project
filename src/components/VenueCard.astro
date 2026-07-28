@@ -11,7 +11,7 @@ const { venue, showMap = false } = Astro.props;
 
 <article id={venue.id} class="venue">
   <p class="u-label">{venue.daysLabel}</p>
-  <h3>{venue.name}</h3>
+  <h2>{venue.name}</h2>
   <p class="time u-num">{venue.open} – {venue.close}</p>
   <p class="address">{venue.address}</p>
   {venue.note && <p class="note">{venue.note}</p>}
@@ -38,7 +38,7 @@ const { venue, showMap = false } = Astro.props;
     gap: var(--space-2xs);
   }
 
-  h3 {
+  h2 {
     font-family: var(--font-display);
     font-size: clamp(1.4rem, 3.5vw, 1.9rem);
     font-weight: 400;

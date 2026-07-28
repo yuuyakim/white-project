@@ -1,0 +1,80 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import SnsLinks from '../components/SnsLinks.astro';
+import { shop } from '../data/shop';
+
+const mailSubject = encodeURIComponent('お問い合わせ');
+---
+
+<BaseLayout title="お問い合わせ" description="ご質問、イベント出店のご依頼はこちらから。">
+  <SectionHeading label="Contact" title="お問い合わせ" as="h1" />
+
+  <p class="intro">
+    メニューのご質問、イベントへの出店のご依頼をお受けしています。営業中は返信までお時間をいただきます。
+  </p>
+
+  <div class="channels">
+    <section>
+      <p class="u-label">Instagram</p>
+      <p class="body">DMがいちばん早くお返事できます。</p>
+      <SnsLinks />
+    </section>
+
+    <section>
+      <p class="u-label">Mail</p>
+      <p class="body">
+        <a href={`mailto:${shop.email}?subject=${mailSubject}`}>{shop.email}</a>
+      </p>
+    </section>
+  </div>
+
+  <section class="event">
+    <p class="u-label">Event</p>
+    <h2>出店のご依頼</h2>
+    <p class="body">
+      日時、場所、想定人数、電源と給水の有無をあわせてお知らせいただけると、お返事がスムーズです。
+    </p>
+  </section>
+</BaseLayout>
+
+<style>
+  .intro {
+    max-width: var(--measure);
+    color: var(--sumi-soft);
+  }
+
+  .channels {
+    display: grid;
+    gap: var(--space-lg);
+    margin-top: var(--space-xl);
+  }
+
+  .body {
+    margin-top: var(--space-2xs);
+    font-size: 0.9rem;
+  }
+
+  .body a {
+    color: var(--ice-deep);
+  }
+
+  .event {
+    margin-top: var(--space-xl);
+    max-width: var(--measure);
+  }
+
+  .event h2 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 1.2rem;
+    letter-spacing: 0.14em;
+    margin-top: var(--space-2xs);
+  }
+
+  @media (min-width: 720px) {
+    .channels {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+</style>

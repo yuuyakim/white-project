@@ -1,0 +1,38 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="ページが見つかりません">
+  <p class="u-label">404</p>
+  <h1>ページが見つかりません</h1>
+  <p class="body">お探しのページは移動または削除された可能性があります。</p>
+  <p class="back"><a href="/">トップへ</a></p>
+</BaseLayout>
+
+<style>
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(1.3rem, 4vw, 1.7rem);
+    letter-spacing: 0.14em;
+    margin-top: var(--space-2xs);
+  }
+
+  .body {
+    margin-top: var(--space-sm);
+    color: var(--sumi-soft);
+  }
+
+  .back {
+    margin-top: var(--space-lg);
+  }
+
+  .back a {
+    font-size: 0.85rem;
+    letter-spacing: 0.12em;
+    color: var(--ice-deep);
+    text-decoration: none;
+    border-bottom: 1px solid var(--ice);
+    padding-bottom: 0.15em;
+  }
+</style>
