@@ -2,7 +2,8 @@
 	// 完全な静的サイトのため Worker コードは動かさず、dist を静的アセットとして配信する。
 	// SSR が必要になったら @astrojs/cloudflare アダプタと "main" を追加する。
 	"$schema": "./node_modules/wrangler/config-schema.json",
-	"name": "white-project-site",
+	// Cloudflare 上の Worker 名と一致させること。ずれると別の Worker が作られる
+	"name": "white-project",
 	"compatibility_date": "2026-07-28",
 	"assets": {
 		"directory": "./dist",
