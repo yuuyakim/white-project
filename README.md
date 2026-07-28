@@ -67,7 +67,7 @@ draft: false     # true で本番ビルドから除外
 
 ## デプロイ
 
-Cloudflare Pages のGitHub連携で公開している。`main` にpushすると自動でビルドされて反映される。手元からのデプロイ操作は不要。
+Cloudflare Workers のGitHub連携で公開している。`main` にpushすると自動でビルドされて反映される。手元からのデプロイ操作は不要。
 
 Cloudflare側の設定:
 
@@ -77,6 +77,10 @@ Cloudflare側の設定:
 | 本番ブランチ | `main` |
 | ビルドコマンド | `npm run build` |
 | 出力ディレクトリ | `dist` |
+
+`wrangler.jsonc` が配信設定。**Worker のコードは動いていない。** 完全な静的サイトなので `main` エントリを持たせず、`dist` を静的アセットとして配るだけの構成にしてある。存在しないURLは `not_found_handling` の指定で `dist/404.html` が返る。
+
+将来フォームの受け口やSSRが必要になったら、そのとき `@astrojs/cloudflare` アダプタと `wrangler.jsonc` の `main` を追加する。今は不要な依存を持たない方を選んでいる。
 
 **`.node-version` を消さないこと。** Astro 7 は Node 22.12 以上を要求するが、Cloudflare Pages の既定はそれより古い。このファイルが無いとビルドが落ちる。
 

@@ -1,0 +1,15 @@
+{
+	// 完全な静的サイトのため Worker コードは動かさず、dist を静的アセットとして配信する。
+	// SSR が必要になったら @astrojs/cloudflare アダプタと "main" を追加する。
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"name": "white-project-site",
+	"compatibility_date": "2026-07-28",
+	"assets": {
+		"directory": "./dist",
+		// 存在しないURLで dist/404.html を返す
+		"not_found_handling": "404-page"
+	},
+	"observability": {
+		"enabled": true
+	}
+}
