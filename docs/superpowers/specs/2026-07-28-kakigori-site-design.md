@@ -24,7 +24,7 @@ Instagram（@whiteproject_kakigori）から確認した内容。**すべて店�
 
 ## 前提
 
-- 技術スタック: Astro 6（静的サイト生成）
+- 技術スタック: Astro 7（静的サイト生成）。当初Astro 6を想定していたが、実装時の最新安定版7.1.4を採用した。Content CollectionsのAPIは6から変更がない。7で変わるのはRustコンパイラがHTMLの閉じタグ省略を許容しない点と、`compressHTML` の既定値が `'jsx'` になり行間の空白が除去される点の2つで、いずれも実装計画に対応を記載済み
 - コンテンツ更新: 制作者がMarkdownを編集してGitにpushする。店主はCMSを触らない
 - 想定規模: 静的4ページ + お知らせ記事
 
