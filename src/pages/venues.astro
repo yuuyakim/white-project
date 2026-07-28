@@ -1,0 +1,66 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import VenueCard from '../components/VenueCard.astro';
+import TodayVenue from '../components/TodayVenue.astro';
+import { shop } from '../data/shop';
+---
+
+<BaseLayout
+  title="出店情報"
+  description="曜日ごとの出店場所と営業時間のご案内です。名古屋市内の2か所で間借り営業しています。"
+>
+  <SectionHeading label="Venues" title="出店情報" />
+
+  <p class="intro">
+    決まったお店を持たず、曜日によって場所が変わります。お越しになる前に曜日と時間をご確認ください。
+  </p>
+
+  <TodayVenue />
+
+  <div class="venues">
+    {shop.venues.map((venue) => <VenueCard venue={venue} showMap />)}
+  </div>
+
+  <section class="payments">
+    <p class="u-label">Payment</p>
+    <p>{shop.payments.join(' / ')}</p>
+  </section>
+</BaseLayout>
+
+<style>
+  .intro {
+    max-width: var(--measure);
+    color: var(--sumi-soft);
+  }
+
+  .venues {
+    display: grid;
+    gap: var(--space-xl);
+    margin-top: var(--space-xl);
+  }
+
+  .payments {
+    margin-top: var(--space-xl);
+  }
+
+  /*
+   * TodayVenue は自前で max-width / padding-inline を持つ。
+   * main は既に padding-inline: var(--space-md) を持つため、ここに
+   * 素の `.today {}` を書いても Astro の scoped CSS は
+   * TodayVenue 側の data-astro-cid にしか一致せず効かない
+   * （TodayVenue は props を受け取らないため class を渡して
+   * 親のスコープを継承させる手段もない）。:global() で
+   * スコープを外して確実に上書きする。
+   */
+  :global(.today) {
+    padding-inline: 0;
+  }
+
+  @media (min-width: 900px) {
+    .venues {
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-lg);
+    }
+  }
+</style>
