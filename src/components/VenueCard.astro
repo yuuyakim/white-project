@@ -1,0 +1,80 @@
+---
+import type { Venue } from '../data/shop';
+
+type Props = {
+  venue: Venue;
+  showMap?: boolean;
+};
+
+const { venue, showMap = false } = Astro.props;
+---
+
+<article id={venue.id} class="venue">
+  <p class="u-label">{venue.daysLabel}</p>
+  <h2>{venue.name}</h2>
+  <p class="time u-num">{venue.open} – {venue.close}</p>
+  <p class="address">{venue.address}</p>
+  {venue.note && <p class="note">{venue.note}</p>}
+  <p class="map-link">
+    <a href={venue.mapUrl} target="_blank" rel="noopener noreferrer">地図を開く ↗</a>
+  </p>
+
+  {
+    showMap && (
+      <iframe
+        src={venue.mapEmbedUrl}
+        title={`${venue.name}の地図`}
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"
+        allowfullscreen
+      ></iframe>
+    )
+  }
+</article>
+
+<style>
+  .venue {
+    display: grid;
+    gap: var(--space-2xs);
+  }
+
+  h2 {
+    font-family: var(--font-display);
+    font-size: clamp(1.4rem, 3.5vw, 1.9rem);
+    font-weight: 400;
+    letter-spacing: 0.14em;
+    margin-top: var(--space-2xs);
+  }
+
+  .time {
+    font-size: 1.05rem;
+    color: var(--ice-deep);
+  }
+
+  .address,
+  .note {
+    font-size: 0.85rem;
+    color: var(--sumi-soft);
+  }
+
+  .map-link {
+    margin-top: var(--space-xs);
+  }
+
+  .map-link a {
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+    color: var(--ice-deep);
+    text-decoration: none;
+    border-bottom: 1px solid var(--ice);
+    padding-bottom: 0.15em;
+  }
+
+  iframe {
+    width: 100%;
+    height: 320px;
+    border: 0;
+    border-radius: 4px;
+    margin-top: var(--space-md);
+  }
+</style>

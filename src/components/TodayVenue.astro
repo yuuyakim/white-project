@@ -1,0 +1,152 @@
+---
+import { shop } from '../data/shop';
+
+type Props = {
+  /** false のとき、コンポーネント自身の左右余白と最大幅を外す。
+      main が既に余白と最大幅を持つページ（/venues）で使う */
+  inset?: boolean;
+};
+
+const { inset = true } = Astro.props;
+---
+
+<section class:list={['today', { 'is-flush': !inset }]} aria-labelledby="today-heading">
+  <p class="u-label">Today</p>
+  <p class="lead" id="today-heading" data-today-lead>本日の出店場所</p>
+
+  <ul class="list">
+    {
+      shop.venues.map((venue) => (
+        <li class="item" data-venue data-days={venue.days.join(',')} data-name={venue.name}>
+          <span class="days u-num">{venue.daysLabel}</span>
+          <span class="name">{venue.name}</span>
+          <span class="time u-num">{venue.open} – {venue.close}</span>
+        </li>
+      ))
+    }
+  </ul>
+
+  <p class="note">
+    氷がなくなり次第終了します。当日の状況は
+    <a href={shop.sns.instagram} target="_blank" rel="noopener noreferrer">Instagram</a>
+    でお知らせしています。
+  </p>
+</section>
+
+<script>
+  const lead = document.querySelector<HTMLElement>('[data-today-lead]');
+  const items = document.querySelectorAll<HTMLElement>('[data-venue]');
+
+  if (lead && items.length > 0) {
+    const today = new Date().getDay();
+    let todayName: string | null = null;
+
+    items.forEach((item) => {
+      const days = (item.dataset.days ?? '')
+        .split(',')
+        .filter(Boolean)
+        .map(Number);
+      const isToday = days.includes(today);
+      item.classList.toggle('is-today', isToday);
+      if (isToday) {
+        todayName = item.dataset.name ?? null;
+      }
+    });
+
+    lead.textContent = todayName ? `本日は ${todayName} にいます` : '本日の出店はお休みです';
+  }
+</script>
+
+<style>
+  .today {
+    max-width: var(--max-width);
+    margin-inline: auto;
+    padding: var(--space-xl) var(--space-md) 0;
+  }
+
+  .today.is-flush {
+    padding-inline: 0;
+    max-width: none;
+  }
+
+  .lead {
+    font-family: var(--font-display);
+    font-size: clamp(1.3rem, 4vw, 1.9rem);
+    letter-spacing: 0.14em;
+    margin-top: var(--space-2xs);
+  }
+
+  .list {
+    display: grid;
+    gap: var(--space-sm);
+    margin-top: var(--space-lg);
+  }
+
+  .item {
+    display: grid;
+    grid-template-columns: 5.5rem 1fr;
+    gap: var(--space-2xs) var(--space-sm);
+    align-items: baseline;
+    padding: var(--space-sm) 0;
+    opacity: 0.45;
+    transition: opacity 0.4s ease;
+  }
+
+  /* JSが動かない環境では全会場を等しく表示する */
+  .list:not(:has(.is-today)) .item {
+    opacity: 1;
+  }
+
+  .item.is-today {
+    opacity: 1;
+  }
+
+  .days {
+    font-size: 0.8rem;
+    letter-spacing: 0.16em;
+    color: var(--sumi-soft);
+  }
+
+  .name {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    letter-spacing: 0.12em;
+  }
+
+  .time {
+    grid-column: 2;
+    font-size: 0.95rem;
+    color: var(--ice-deep);
+  }
+
+  .item.is-today .name::after {
+    content: "";
+    display: inline-block;
+    width: 0.4em;
+    height: 0.4em;
+    margin-left: 0.7em;
+    border-radius: 50%;
+    background-color: var(--ice);
+    vertical-align: 0.15em;
+  }
+
+  .note {
+    margin-top: var(--space-md);
+    font-size: 0.8rem;
+    color: var(--sumi-soft);
+  }
+
+  .note a {
+    color: var(--ice-deep);
+  }
+
+  @media (min-width: 720px) {
+    .item {
+      grid-template-columns: 6rem 1fr auto;
+    }
+
+    .time {
+      grid-column: 3;
+    }
+  }
+</style>

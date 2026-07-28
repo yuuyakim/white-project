@@ -1,0 +1,55 @@
+---
+import { Image } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+
+type Props = {
+  entry: CollectionEntry<'menu'>;
+};
+
+const { entry } = Astro.props;
+const { name, price, description, image } = entry.data;
+---
+
+<article class="card">
+  <div class="visual">
+    <Image src={image} alt={`${name}のかき氷`} width={600} height={800} />
+    <h3 class="u-vertical">{name}</h3>
+  </div>
+  <p class="price u-num">¥{price.toLocaleString('ja-JP')}</p>
+  <p class="description">{description}</p>
+</article>
+
+<style>
+  .visual {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--space-sm);
+    align-items: start;
+  }
+
+  .visual :global(img) {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    border-radius: 2px;
+  }
+
+  h3 {
+    font-size: clamp(1rem, 2.6vw, 1.2rem);
+    font-weight: 400;
+    padding-top: var(--space-xs);
+  }
+
+  .price {
+    margin-top: var(--space-sm);
+    font-size: 0.95rem;
+    color: var(--ice-deep);
+  }
+
+  .description {
+    margin-top: var(--space-2xs);
+    font-size: 0.85rem;
+    line-height: 1.9;
+    color: var(--sumi-soft);
+  }
+</style>

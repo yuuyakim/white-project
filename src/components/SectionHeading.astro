@@ -1,0 +1,30 @@
+---
+type Props = {
+  label: string;
+  title: string;
+  /** ページの主見出しとして使うときは 'h1' を渡す。既定はセクション見出しの 'h2' */
+  as?: 'h1' | 'h2';
+};
+
+const { label, title, as: Tag = 'h2' }: Props = Astro.props;
+---
+
+<div class="heading">
+  <p class="u-label">{label}</p>
+  <Tag>{title}</Tag>
+</div>
+
+<style>
+  .heading {
+    margin-bottom: var(--space-lg);
+  }
+
+  h1,
+  h2 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(1.35rem, 3vw, 1.75rem);
+    letter-spacing: 0.16em;
+    margin-top: var(--space-2xs);
+  }
+</style>

@@ -1,0 +1,63 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import MenuCard from '../components/MenuCard.astro';
+
+const all = (await getCollection('menu', ({ data }) => data.available)).sort(
+  (a, b) => a.data.order - b.data.order
+);
+
+const groups = [
+  { key: 'regular', label: 'Standard', title: '定番', entries: all.filter((e) => e.data.season === 'all') },
+  { key: 'seasonal', label: 'Seasonal', title: '季節限定', entries: all.filter((e) => e.data.season !== 'all') },
+].filter((group) => group.entries.length > 0);
+---
+
+<BaseLayout title="メニュー" description="かき氷のメニューと価格のご案内です。">
+  <SectionHeading label="Menu" title="メニュー" as="h1" />
+
+  <p class="intro">
+    その日に届いた果実を使うため、内容は日によって変わります。仕入れの都合でお出しできない日があります。
+  </p>
+
+  {
+    groups.map((group) => (
+      <section class="group">
+        <p class="u-label">{group.label}</p>
+        <h2 class="group-title">{group.title}</h2>
+        <div class="grid">
+          {group.entries.map((entry) => (
+            <MenuCard entry={entry} />
+          ))}
+        </div>
+      </section>
+    ))
+  }
+</BaseLayout>
+
+<style>
+  .intro {
+    max-width: var(--measure);
+    color: var(--sumi-soft);
+  }
+
+  .group {
+    margin-top: var(--space-xl);
+  }
+
+  .group-title {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 1.2rem;
+    letter-spacing: 0.16em;
+    margin-top: var(--space-2xs);
+    margin-bottom: var(--space-lg);
+  }
+
+  .grid {
+    display: grid;
+    gap: var(--space-lg) var(--space-md);
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  }
+</style>

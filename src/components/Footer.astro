@@ -1,0 +1,80 @@
+---
+import SnsLinks from './SnsLinks.astro';
+import { shop } from '../data/shop';
+
+const year = new Date().getFullYear();
+---
+
+<footer>
+  <div class="inner">
+    <div>
+      <p class="name">{shop.nameJa}</p>
+      <p class="tagline">{shop.tagline}</p>
+      <SnsLinks />
+    </div>
+
+    <dl class="venues">
+      {
+        shop.venues.map((venue) => (
+          <div>
+            <dt>{venue.name}</dt>
+            <dd class="u-num">{venue.daysLabel}　{venue.open}–{venue.close}</dd>
+          </div>
+        ))
+      }
+    </dl>
+  </div>
+
+  <p class="copyright u-num">&copy; {year} {shop.name}</p>
+</footer>
+
+<style>
+  footer {
+    margin-top: var(--space-2xl);
+    padding: var(--space-xl) var(--space-md) var(--space-lg);
+    background: linear-gradient(180deg, var(--paper) 0%, var(--mist) 100%);
+  }
+
+  .inner {
+    max-width: var(--max-width);
+    margin-inline: auto;
+    display: grid;
+    gap: var(--space-lg);
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  }
+
+  .name {
+    font-family: var(--font-display);
+    letter-spacing: 0.16em;
+  }
+
+  .tagline {
+    color: var(--sumi-soft);
+    font-size: 0.85rem;
+    margin-bottom: var(--space-sm);
+  }
+
+  .venues {
+    display: grid;
+    gap: var(--space-sm);
+    align-content: start;
+  }
+
+  .venues dt {
+    font-size: 0.9rem;
+    letter-spacing: 0.12em;
+  }
+
+  .venues dd {
+    font-size: 0.85rem;
+    color: var(--sumi-soft);
+  }
+
+  .copyright {
+    max-width: var(--max-width);
+    margin: var(--space-xl) auto 0;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    color: var(--sumi-soft);
+  }
+</style>

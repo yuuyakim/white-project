@@ -1,0 +1,66 @@
+export type Venue = {
+  /** アンカーリンクとdata属性に使う識別子 */
+  id: string;
+  /** 間借り先の名前 */
+  name: string;
+  /** 出店曜日。0=日曜, 1=月曜, ... 6=土曜 */
+  days: number[];
+  /** 表示用の曜日ラベル。例: "月〜土" */
+  daysLabel: string;
+  /** 開始時刻。例: "18:30" */
+  open: string;
+  /** 終了時刻。例: "21:30" */
+  close: string;
+  address: string;
+  /** Googleマップの共有リンク */
+  mapUrl: string;
+  /** Googleマップの埋め込み用URL */
+  mapEmbedUrl: string;
+  note?: string;
+};
+
+const mapLinks = (query: string) => ({
+  mapUrl: `https://maps.google.com/?q=${encodeURIComponent(query)}`,
+  mapEmbedUrl: `https://maps.google.com/maps?q=${encodeURIComponent(query)}&output=embed`,
+});
+
+// TODO: 店主に確認 — 各会場の正確な住所、定休日、支払い方法
+export const venues: Venue[] = [
+  {
+    id: 'akawani',
+    name: '赤鰐',
+    days: [1, 2, 3, 4, 5, 6],
+    daysLabel: '月〜土',
+    open: '18:30',
+    close: '21:30',
+    address: '愛知県名古屋市（住所確認中）',
+    ...mapLinks('赤鰐 名古屋'),
+    note: '夜の営業です。氷がなくなり次第終了します。',
+  },
+  {
+    id: 'kakaoc',
+    name: 'cafe KAKAOc',
+    days: [0],
+    daysLabel: '日曜',
+    open: '12:00',
+    close: '19:00',
+    address: '愛知県名古屋市（住所確認中）',
+    ...mapLinks('cafe KAKAOc 名古屋'),
+  },
+];
+
+export const shop = {
+  name: 'White Project',
+  nameJa: 'かき氷専門店 White Project',
+  tagline: '白の上に、季節を。',
+  description:
+    '名古屋で間借り営業しているかき氷専門店です。曜日によって出店場所が変わります。その日の果実を削りたての氷にのせてお出しします。',
+  // TODO: 店主に確認 — 問い合わせ用のメールアドレス
+  email: 'info@example.com',
+  payments: ['現金', 'PayPay'],
+  sns: {
+    instagram: 'https://www.instagram.com/whiteproject_kakigori/',
+    threads: 'https://www.threads.net/@whiteproject_kakigori',
+  },
+  venues,
+};

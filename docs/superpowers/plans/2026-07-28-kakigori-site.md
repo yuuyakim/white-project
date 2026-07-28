@@ -6,7 +6,7 @@
 
 **Architecture:** Astro 6の静的サイト生成。メニューとお知らせはContent Collections（Markdown + zod）。会場・連絡先は `src/data/shop.ts` を唯一の情報源とする。UIコンポーネントはpropsを表示するだけに徹し、データ取得はページ側で行う。唯一の例外が「本日の出店」で、曜日判定のみクライアント側の小さなスクリプトで行う。
 
-**Tech Stack:** Astro 6、TypeScript（strict）、素のCSS（フレームワークなし）、Astro Image（`astro:assets`）、Google Fonts
+**Tech Stack:** Astro 7（Task 1で7.1.4を導入済み）、TypeScript（strict）、素のCSS（フレームワークなし）、Astro Image（`astro:assets`）、Google Fonts
 
 ## Global Constraints
 
@@ -22,6 +22,13 @@
 - 店舗の実データ（住所・価格・定休日）は未確定。プレースホルダを置き `// TODO: 店主に確認` を残す
 - 375px幅で破綻しないこと
 - コミットは各タスク末尾。メッセージは日本語、Conventional Commitsのprefix付き
+
+### Astro 7 固有の注意（Task 1で7.1.4が入った。必ず守る）
+
+計画のコード例はAstro 6のAPIで検証したものだが、Content Collections（`glob` loader、`schema: ({ image }) => ...`、`getCollection`、`render(entry)`、`entry.id`）はAstro 7でも変更されていない。そのまま使ってよい。以下の2点だけAstro 7で挙動が変わる。
+
+1. **Rustコンパイラが唯一のコンパイラになり、不正なHTMLでビルドが落ちる。** 閉じタグの省略は自動補正されずエラーになる。**void要素以外を自己終了タグで書かないこと。** 特に `<script>` は void 要素ではないため `<script ... />` は不可。必ず `<script ...></script>` と閉じる。`<Image />` などAstroコンポーネントの自己終了は従来どおり可。
+2. **`compressHTML` の既定値が `'jsx'` になり、行間の空白がJSXの規則で除去される。** 式と式の間に置いた区切り文字の前後の空白は消える。`{a} – {b}` のように**空白を意味的に使う箇所は1行に収めるか、`{' '}` で明示する**こと。改行して書くと `18:30–21:30` のように空白が落ちる。
 
 ## 配置済みアセット
 
@@ -290,7 +297,7 @@ git commit -m "chore: Astroプロジェクトを初期化しデザイントー�
 - Create: `src/data/shop.ts`
 
 **Interfaces:**
-- Produces: `export const shop` — `name`, `nameEn`, `tagline`, `description`, `email`, `payments`, `sns`, `venues`
+- Produces: `export const shop` — `name`, `nameJa`, `tagline`, `description`, `email`, `payments`, `sns`, `venues`
 - Produces: `export type Venue = { id, name, days, daysLabel, open, close, address, mapUrl, mapEmbedUrl, note? }`
 - `days` は `0=日曜〜6=土曜`。Task 5の「本日の出店」判定がこの配列を使う
 
@@ -630,9 +637,7 @@ const year = new Date().getFullYear();
         shop.venues.map((venue) => (
           <div>
             <dt>{venue.name}</dt>
-            <dd class="u-num">
-              {venue.daysLabel}　{venue.open}–{venue.close}
-            </dd>
+            <dd class="u-num">{venue.daysLabel}　{venue.open}–{venue.close}</dd>
           </div>
         ))
       }
@@ -755,7 +760,7 @@ const jsonLd = {
     <meta property="og:image" content={ogImageUrl.href} />
     <meta property="og:site_name" content={shop.nameJa} />
     <meta name="twitter:card" content="summary_large_image" />
-    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline></script>
   </head>
   <body>
     <Header />
@@ -1099,9 +1104,7 @@ import { shop } from '../data/shop';
         <li class="item" data-venue data-days={venue.days.join(',')} data-name={venue.name}>
           <span class="days u-num">{venue.daysLabel}</span>
           <span class="name">{venue.name}</span>
-          <span class="time u-num">
-            {venue.open} – {venue.close}
-          </span>
+          <span class="time u-num">{venue.open} – {venue.close}</span>
         </li>
       ))
     }
