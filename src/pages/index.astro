@@ -1,8 +1,66 @@
 ---
+import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import Hero from '../components/Hero.astro';
+import TodayVenue from '../components/TodayVenue.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import MenuCard from '../components/MenuCard.astro';
+import NewsList from '../components/NewsList.astro';
 import { shop } from '../data/shop';
+
+const featuredMenu = (await getCollection('menu', ({ data }) => data.available))
+  .sort((a, b) => a.data.order - b.data.order)
+  .slice(0, 3);
+
+const news = (
+  await getCollection('news', ({ data }) => (import.meta.env.PROD ? !data.draft : true))
+).sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
 ---
 
-<BaseLayout title={shop.name}>
-  <h1>{shop.tagline}</h1>
+<BaseLayout title={shop.name} wide>
+  <Hero />
+
+  <TodayVenue />
+
+  <section class="section">
+    <SectionHeading label="Menu" title="今おすすめの一杯" />
+    <div class="grid">
+      {featuredMenu.map((entry) => <MenuCard entry={entry} />)}
+    </div>
+    <p class="more"><a href="/menu">メニューをすべて見る</a></p>
+  </section>
+
+  <section class="section">
+    <SectionHeading label="News" title="お知らせ" />
+    <NewsList entries={news} limit={3} />
+    <p class="more"><a href="/news">お知らせをすべて見る</a></p>
+  </section>
 </BaseLayout>
+
+<style>
+  .section {
+    max-width: var(--max-width);
+    margin-inline: auto;
+    padding: var(--space-2xl) var(--space-md) 0;
+  }
+
+  .grid {
+    display: grid;
+    gap: var(--space-lg) var(--space-md);
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  }
+
+  .more {
+    margin-top: var(--space-lg);
+    text-align: right;
+  }
+
+  .more a {
+    font-size: 0.85rem;
+    letter-spacing: 0.12em;
+    color: var(--ice-deep);
+    text-decoration: none;
+    border-bottom: 1px solid var(--ice);
+    padding-bottom: 0.15em;
+  }
+</style>

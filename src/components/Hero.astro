@@ -1,0 +1,78 @@
+---
+import { Image } from 'astro:assets';
+import heroImage from '../assets/images/shop/hero-placeholder.svg';
+---
+
+<section class="hero">
+  <p class="copy copy-left u-vertical">削りたてを、ひと山。</p>
+
+  <div class="visual">
+    <Image src={heroImage} alt="" width={900} height={1200} loading="eager" />
+  </div>
+
+  <p class="copy copy-right u-vertical">白の上に、季節を。</p>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-height: min(78vh, 720px);
+    padding: var(--space-lg) var(--space-sm);
+    overflow: hidden;
+    background:
+      radial-gradient(90% 70% at 78% 16%, rgba(90, 189, 221, 0.3), transparent 62%),
+      radial-gradient(80% 62% at 16% 74%, rgba(200, 236, 226, 0.5), transparent 64%),
+      linear-gradient(180deg, #ffffff 0%, var(--mist) 100%);
+  }
+
+  .visual {
+    width: min(46vw, 300px);
+  }
+
+  .visual :global(img) {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    border-radius: 2px;
+  }
+
+  .copy {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--sumi);
+    font-size: clamp(0.95rem, 3.2vw, 1.35rem);
+    opacity: 0;
+    animation: rise 1.1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  .copy-left {
+    left: max(var(--space-sm), 6vw);
+    animation-delay: 0.15s;
+  }
+
+  .copy-right {
+    right: max(var(--space-sm), 6vw);
+    animation-delay: 0.35s;
+  }
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(calc(-50% + 1.5rem));
+    }
+    to {
+      opacity: 1;
+      transform: translateY(-50%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .copy {
+      opacity: 1;
+      animation: none;
+    }
+  }
+</style>
