@@ -297,7 +297,7 @@ git commit -m "chore: Astroプロジェクトを初期化しデザイントー�
 - Create: `src/data/shop.ts`
 
 **Interfaces:**
-- Produces: `export const shop` — `name`, `nameEn`, `tagline`, `description`, `email`, `payments`, `sns`, `venues`
+- Produces: `export const shop` — `name`, `nameJa`, `tagline`, `description`, `email`, `payments`, `sns`, `venues`
 - Produces: `export type Venue = { id, name, days, daysLabel, open, close, address, mapUrl, mapEmbedUrl, note? }`
 - `days` は `0=日曜〜6=土曜`。Task 5の「本日の出店」判定がこの配列を使う
 
