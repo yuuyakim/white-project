@@ -19,7 +19,10 @@ const { inset = true } = Astro.props;
       shop.venues.map((venue) => (
         <li class="item" data-venue data-days={venue.days.join(',')} data-name={venue.name}>
           <span class="days u-num">{venue.daysLabel}</span>
-          <span class="name">{venue.name}</span>
+          <span class="name">
+            {venue.name}
+            <span class="badge">本日</span>
+          </span>
           <span class="time u-num">{venue.open} – {venue.close}</span>
         </li>
       ))
@@ -88,17 +91,6 @@ const { inset = true } = Astro.props;
     gap: var(--space-2xs) var(--space-sm);
     align-items: baseline;
     padding: var(--space-sm) 0;
-    opacity: 0.45;
-    transition: opacity 0.4s ease;
-  }
-
-  /* JSが動かない環境では全会場を等しく表示する */
-  .list:not(:has(.is-today)) .item {
-    opacity: 1;
-  }
-
-  .item.is-today {
-    opacity: 1;
   }
 
   .days {
@@ -108,9 +100,28 @@ const { inset = true } = Astro.props;
   }
 
   .name {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2xs) var(--space-xs);
     font-family: var(--font-display);
     font-size: 1.15rem;
     letter-spacing: 0.12em;
+  }
+
+  .item.is-today .name {
+    font-weight: 500;
+  }
+
+  .badge {
+    display: none;
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    color: var(--ice-deep);
+  }
+
+  .item.is-today .badge {
+    display: inline-block;
   }
 
   .time {
@@ -124,7 +135,7 @@ const { inset = true } = Astro.props;
     display: inline-block;
     width: 0.4em;
     height: 0.4em;
-    margin-left: 0.7em;
+    margin-left: 0.1em;
     border-radius: 50%;
     background-color: var(--ice);
     vertical-align: 0.15em;

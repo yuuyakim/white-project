@@ -17,7 +17,7 @@ const news = (
 ).sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
 ---
 
-<BaseLayout title={shop.name} wide>
+<BaseLayout title={shop.name} wide structuredData>
   <h1 class="u-visually-hidden">{shop.nameJa}</h1>
 
   <Hero />

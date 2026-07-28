@@ -57,6 +57,7 @@ export const shop = {
     '名古屋で間借り営業しているかき氷専門店です。曜日によって出店場所が変わります。その日の果実を削りたての氷にのせてお出しします。',
   // TODO: 店主に確認 — 問い合わせ用のメールアドレス
   email: 'info@example.com',
+  // TODO: 店主に確認
   payments: ['現金', 'PayPay'],
   sns: {
     instagram: 'https://www.instagram.com/whiteproject_kakigori/',

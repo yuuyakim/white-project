@@ -1,6 +1,7 @@
 ---
 import BaseLayout from './BaseLayout.astro';
 import type { CollectionEntry } from 'astro:content';
+import { formatDate } from '../lib/formatDate';
 
 type Props = {
   entry: CollectionEntry<'news'>;
@@ -8,9 +9,6 @@ type Props = {
 
 const { entry } = Astro.props;
 const { title, date, category } = entry.data;
-
-const formatDate = (value: Date) =>
-  value.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
 ---
 
 <BaseLayout title={title} description={`${formatDate(date)}のお知らせ`}>
