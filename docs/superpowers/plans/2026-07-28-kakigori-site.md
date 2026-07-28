@@ -1,23 +1,35 @@
-# かき氷屋HP 実装計画
+# White Project HP 実装計画
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 友人が営むかき氷屋の店舗紹介サイト（静的4ページ + お知らせ）をAstroで構築する。
+**Goal:** かき氷専門店 White Project の紹介サイト（静的6ページ + お知らせ詳細）をAstroで構築する。間借り営業で曜日ごとに出店先が変わるため、「今日どこにいるか」がトップで分かることを最優先にする。
 
-**Architecture:** Astroの静的サイト生成。メニューとお知らせはMarkdownファイルとしてContent Collectionsで管理し、zodスキーマがビルド時に不正なデータを検出する。店舗情報は `src/data/shop.ts` の1ファイルを唯一の情報源とし、全ページがそこを参照する。UIコンポーネントはpropsを受け取って表示するだけに徹し、データ取得はページ側で行う。
+**Architecture:** Astro 6の静的サイト生成。メニューとお知らせはContent Collections（Markdown + zod）。会場・連絡先は `src/data/shop.ts` を唯一の情報源とする。UIコンポーネントはpropsを表示するだけに徹し、データ取得はページ側で行う。唯一の例外が「本日の出店」で、曜日判定のみクライアント側の小さなスクリプトで行う。
 
-**Tech Stack:** Astro 6、TypeScript（strict）、素のCSS（フレームワークなし）、Astro Image（`astro:assets`）
+**Tech Stack:** Astro 6、TypeScript（strict）、素のCSS（フレームワークなし）、Astro Image（`astro:assets`）、Google Fonts
 
 ## Global Constraints
 
-- 設計書は `docs/superpowers/specs/2026-07-28-kakigori-site-design.md`。仕様の正はこちら
-- 作業ディレクトリは `C:\Users\yuuya\test_prj\kakigori-site`（Git初期化済み、`main` ブランチ、spec commit済み）
-- **自動テストは書かない。** 設計書のスコープ外に明記されている。検証は毎タスク `npm run build` の成功（zodスキーマ違反はここで落ちる）と `npx astro check` の型チェック通過をもって行う
-- 店舗の実データ（住所・電話番号・営業時間・SNSアカウント）は未確定。`src/data/shop.ts` にプレースホルダの日本語文字列を入れ、`// TODO: 実データに差し替え` コメントを付ける。**これはコードのTODOであり、計画上の未定事項ではない**
-- 画像素材は未入手。`src/assets/images/` にプレースホルダのSVGを置いて進める
-- CSSはコンポーネント内の `<style>` に閉じ込める。`global.css` にはリセット・CSS変数・タイポグラフィのみ置く
-- 日本語サイトのため `<html lang="ja">` 固定
-- コミットは各タスク末尾で行う。コミットメッセージは日本語、Conventional Commitsのprefix付き
+- 仕様の正は `docs/superpowers/specs/2026-07-28-kakigori-site-design.md`。デザイン方針の節を必ず読んでから実装すること
+- 作業ディレクトリは `C:\Users\yuuya\test_prj\kakigori-site`（Git初期化済み、`main`、spec/planはcommit済み）
+- **自動テストは書かない**（設計書のスコープ外）。検証は毎タスク `npm run build` の成功と `npx astro check` の `0 errors`、および指定URLの目視確認で行う
+- **カラーはこの5つ以外を使わない。** `--paper:#FCFDFD` / `--ice:#5ABDDD` / `--ice-deep:#1C6B85` / `--mist:#E4F2F8` / `--sumi:#1B2328`（+ `--sumi-soft:#5A656B`）。彩度のある色はメニュー写真からのみ出す
+- **`--ice` を文字色に使わない。** 白地とのコントラスト比が2.1しかない。文字に青が要るときは `--ice-deep` を使う
+- **枠線付きの角丸カードを作らない。** 区切りは余白で行う。`border-radius` は写真とロゴにのみ許可
+- **縦組み（`writing-mode: vertical-rl`）を使うのはヒーローのコピーとメニューの商品名の2箇所だけ。** それ以外は横組み
+- 書体の役割: 見出し・縦組み＝`--font-display`（Shippori Mincho） / 本文＝`--font-body`（Zen Kaku Gothic New） / **数字・欧文ラベル＝`--font-latin`（Jost）**。価格・時刻・曜日は必ずJostで組む
+- 全アニメーションは `@media (prefers-reduced-motion: reduce)` で無効化する
+- 店舗の実データ（住所・価格・定休日）は未確定。プレースホルダを置き `// TODO: 店主に確認` を残す
+- 375px幅で破綻しないこと
+- コミットは各タスク末尾。メッセージは日本語、Conventional Commitsのprefix付き
+
+## 配置済みアセット
+
+以下は既にリポジトリにある。作成不要。
+
+- `src/assets/images/brand/logo-on-white.png`（150x150、白地に青ロゴ。**ヘッダーで使う**）
+- `src/assets/images/brand/logo-on-blue.png`（870x1022、青地に白ロゴ）
+- `docs/design-reference/bollina-reference.png`（デザイン参考。実装には使わない）
 
 ---
 
@@ -25,39 +37,43 @@
 
 | ファイル | 責務 |
 |---|---|
-| `astro.config.mjs` | サイトURL、ビルド設定 |
-| `src/data/shop.ts` | 店舗情報の唯一の情報源。型と定数のみ、ロジックなし |
-| `src/content.config.ts` | menu / news コレクションのloaderとzodスキーマ |
-| `src/layouts/BaseLayout.astro` | head、meta、OGP、JSON-LD、Header/Footerを含む全ページ共通の外枠 |
-| `src/layouts/NewsLayout.astro` | お知らせ詳細の本文枠。BaseLayoutを内包 |
-| `src/components/Header.astro` | グローバルナビ |
-| `src/components/Footer.astro` | 店舗情報要約とコピーライト |
-| `src/components/SnsLinks.astro` | SNSリンク一覧 |
-| `src/components/BusinessHours.astro` | 営業時間・定休日の整形表示 |
-| `src/components/Hero.astro` | トップのファーストビュー |
-| `src/components/MenuCard.astro` | メニュー1件の表示 |
-| `src/components/NewsList.astro` | お知らせ配列の一覧表示。件数上限をpropsで受ける |
+| `src/styles/global.css` | デザイントークン、リセット、タイポグラフィ、縦組みユーティリティ |
+| `src/data/shop.ts` | 屋号・連絡先・SNS・**会場配列**の唯一の情報源 |
+| `src/content.config.ts` | menu / news のloaderとzodスキーマ |
+| `src/layouts/BaseLayout.astro` | head、フォント読み込み、OGP、JSON-LD、Header/Footer |
+| `src/layouts/NewsLayout.astro` | お知らせ詳細の本文枠 |
+| `src/components/Header.astro` | 中央ロゴ + ナビ |
+| `src/components/Footer.astro` | 会場要約とSNS |
+| `src/components/SnsLinks.astro` | SNSリンク |
+| `src/components/SectionHeading.astro` | Jostのラベル + 日本語見出し。全セクション共通 |
+| `src/components/TodayVenue.astro` | シグネチャー要素。曜日で出店先を出し分ける |
+| `src/components/VenueCard.astro` | 会場1件の表示 |
+| `src/components/Hero.astro` | 全幅グラデーション + 縦組みコピー |
+| `src/components/MenuCard.astro` | 縦長写真 + 縦組みの商品名 |
+| `src/components/NewsList.astro` | お知らせ一覧。件数上限をpropsで受ける |
 | `src/pages/*.astro` | ルーティングとデータ取得 |
 
 ---
 
-### Task 1: プロジェクト初期化
+### Task 1: プロジェクト初期化とデザイントークン
 
-Astroの対話式スキャフォールド（`npm create astro@latest`）は使わない。既存の `docs/` と `.git/` があるディレクトリでは非空ディレクトリの確認プロンプトが出て自動実行が止まるため、手動でセットアップする。
+対話式スキャフォールド（`npm create astro@latest`）は使わない。既存の `docs/` と `.git/` があるため非空ディレクトリの確認プロンプトで自動実行が止まる。手動でセットアップする。
 
 **Files:**
-- Create: `package.json`
-- Create: `astro.config.mjs`
-- Create: `tsconfig.json`
-- Create: `.gitignore`
+- Create: `package.json`, `astro.config.mjs`, `tsconfig.json`, `.gitignore`
 - Create: `src/styles/global.css`
-- Create: `src/pages/index.astro`（この時点では動作確認用の最小内容）
+- Create: `src/pages/index.astro`（動作確認用の最小内容。Task 8で差し替え）
+
+**Interfaces:**
+- Produces: CSS変数群。以降の全コンポーネントがこれだけを参照して色・間隔・書体を決める
+- Produces: `.u-vertical` — 縦組みユーティリティ
+- Produces: `.u-label` — Jostのwide trackingラベル
 
 - [ ] **Step 1: `package.json` を作成**
 
 ```json
 {
-  "name": "kakigori-site",
+  "name": "white-project-site",
   "type": "module",
   "version": "0.0.1",
   "private": true,
@@ -75,15 +91,13 @@ Astroの対話式スキャフォールド（`npm create astro@latest`）は使�
 Run: `npm install astro`
 Run: `npm install -D @astrojs/check typescript`
 
-`@astrojs/check` は `astro check`（`.astro` ファイルの型チェック）に必要。
-
 - [ ] **Step 3: `astro.config.mjs` を作成**
 
 ```js
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
-  // TODO: 独自ドメイン取得後に実URLへ差し替え。sitemap/OGPの絶対URL生成に使う
+  // TODO: 独自ドメイン取得後に実URLへ差し替え。OGPとcanonicalの絶対URL生成に使う
   site: 'https://example.com',
 });
 ```
@@ -110,22 +124,34 @@ npm-debug.log*
 
 - [ ] **Step 6: `src/styles/global.css` を作成**
 
-CSS変数とリセットのみ。レイアウトはここに書かない。
+トークンと最小限のリセットのみ。レイアウトは書かない。
 
 ```css
 :root {
-  --color-bg: #fdfcfa;
-  --color-text: #2b2b2b;
-  --color-text-muted: #6b6b6b;
-  --color-accent: #4aa3c7;
-  --color-accent-dark: #2f7d9c;
-  --color-border: #e5e1db;
-  --font-base: "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
-  --max-width: 960px;
-  --space-sm: 0.5rem;
-  --space-md: 1rem;
-  --space-lg: 2rem;
-  --space-xl: 4rem;
+  /* 色 — この6つ以外を使わない */
+  --paper: #fcfdfd;
+  --ice: #5abddd;
+  --ice-deep: #1c6b85;
+  --mist: #e4f2f8;
+  --sumi: #1b2328;
+  --sumi-soft: #5a656b;
+
+  /* 書体 */
+  --font-display: "Shippori Mincho", "Yu Mincho", "YuMincho", serif;
+  --font-body: "Zen Kaku Gothic New", "Hiragino Sans", "Noto Sans JP", sans-serif;
+  --font-latin: "Jost", "Helvetica Neue", system-ui, sans-serif;
+
+  /* 余白 — 枠線ではなくこれで区切る */
+  --space-2xs: 0.25rem;
+  --space-xs: 0.5rem;
+  --space-sm: 1rem;
+  --space-md: 1.75rem;
+  --space-lg: 3rem;
+  --space-xl: 6rem;
+  --space-2xl: 9rem;
+
+  --measure: 34rem;
+  --max-width: 1100px;
 }
 
 *,
@@ -140,6 +166,8 @@ h2,
 h3,
 p,
 figure,
+dl,
+dd,
 ul {
   margin: 0;
 }
@@ -151,13 +179,16 @@ ul {
 
 html {
   color-scheme: light;
+  scroll-behavior: smooth;
 }
 
 body {
-  background-color: var(--color-bg);
-  color: var(--color-text);
-  font-family: var(--font-base);
-  line-height: 1.8;
+  background-color: var(--paper);
+  color: var(--sumi);
+  font-family: var(--font-body);
+  font-weight: 400;
+  line-height: 1.95;
+  letter-spacing: 0.04em;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -168,13 +199,57 @@ img {
 }
 
 a {
-  color: var(--color-accent-dark);
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ice-deep);
+  outline-offset: 3px;
+}
+
+/* 縦組み。ヒーローのコピーとメニューの商品名でのみ使う */
+.u-vertical {
+  writing-mode: vertical-rl;
+  font-family: var(--font-display);
+  font-weight: 400;
+  line-height: 1.6;
+  letter-spacing: 0.28em;
+}
+
+/* セクションの英字ラベル。Jostのwide tracking */
+.u-label {
+  font-family: var(--font-latin);
+  font-weight: 400;
+  font-size: 0.7rem;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--ice-deep);
+}
+
+/* 数字・時刻・価格はすべてJost */
+.u-num {
+  font-family: var(--font-latin);
+  font-weight: 300;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
 }
 ```
 
 - [ ] **Step 7: 動作確認用の `src/pages/index.astro` を作成**
-
-Task 7で本実装に差し替える。
 
 ```astro
 ---
@@ -192,82 +267,107 @@ import '../styles/global.css';
 </html>
 ```
 
-- [ ] **Step 8: ビルドが通ることを確認**
+- [ ] **Step 8: ビルドと型チェック**
 
 Run: `npm run build`
-Expected: `Complete!` で終了し `dist/index.html` が生成される
-
-- [ ] **Step 9: 型チェックが通ることを確認**
+Expected: 成功し `dist/index.html` が生成される
 
 Run: `npx astro check`
 Expected: `0 errors`
 
-- [ ] **Step 10: コミット**
+- [ ] **Step 9: コミット**
 
 ```bash
 git add -A
-git commit -m "chore: Astroプロジェクトを初期化"
+git commit -m "chore: Astroプロジェクトを初期化しデザイントークンを定義"
 ```
 
 ---
 
-### Task 2: 店舗情報の単一情報源
+### Task 2: 会場データを含む単一情報源
 
 **Files:**
 - Create: `src/data/shop.ts`
 
 **Interfaces:**
-- Produces: `shop` オブジェクト（default exportではなくnamed export）。以降の全タスクが `import { shop } from '../data/shop'` で参照する。プロパティ: `name`, `nameEn`, `description`, `address`, `tel`, `email`, `businessHours: BusinessHour[]`, `closedNote`, `parking`, `payments: string[]`, `mapUrl`, `mapEmbedUrl`, `sns: { instagram?, x?, line? }`
-- Produces: `type BusinessHour = { days: string; open: string; close: string; note?: string }`
+- Produces: `export const shop` — `name`, `nameEn`, `tagline`, `description`, `email`, `payments`, `sns`, `venues`
+- Produces: `export type Venue = { id, name, days, daysLabel, open, close, address, mapUrl, mapEmbedUrl, note? }`
+- `days` は `0=日曜〜6=土曜`。Task 5の「本日の出店」判定がこの配列を使う
 
 - [ ] **Step 1: `src/data/shop.ts` を作成**
 
-実データは未確定のためプレースホルダを入れる。`as const` を付けて型を絞る。
+Instagramから読み取った暫定情報を入れる。住所は未確認のためプレースホルダ。
 
 ```ts
-export type BusinessHour = {
-  /** 曜日の表記。例: "平日", "土日祝" */
-  days: string;
-  /** 開店時刻。例: "11:00" */
+export type Venue = {
+  /** アンカーリンクとdata属性に使う識別子 */
+  id: string;
+  /** 間借り先の名前 */
+  name: string;
+  /** 出店曜日。0=日曜, 1=月曜, ... 6=土曜 */
+  days: number[];
+  /** 表示用の曜日ラベル。例: "月〜土" */
+  daysLabel: string;
+  /** 開始時刻。例: "18:30" */
   open: string;
-  /** 閉店時刻。例: "18:00" */
+  /** 終了時刻。例: "21:30" */
   close: string;
-  /** 補足。例: "氷がなくなり次第終了" */
+  address: string;
+  /** Googleマップの共有リンク */
+  mapUrl: string;
+  /** Googleマップの埋め込み用URL */
+  mapEmbedUrl: string;
   note?: string;
 };
 
-export type Sns = {
-  instagram?: string;
-  x?: string;
-  line?: string;
-};
+const mapLinks = (query: string) => ({
+  mapUrl: `https://maps.google.com/?q=${encodeURIComponent(query)}`,
+  mapEmbedUrl: `https://maps.google.com/maps?q=${encodeURIComponent(query)}&output=embed`,
+});
 
-// TODO: 実データに差し替え（店主に確認する）
+// TODO: 店主に確認 — 各会場の正確な住所、定休日、支払い方法
+export const venues: Venue[] = [
+  {
+    id: 'akawani',
+    name: '赤鰐',
+    days: [1, 2, 3, 4, 5, 6],
+    daysLabel: '月〜土',
+    open: '18:30',
+    close: '21:30',
+    address: '愛知県名古屋市（住所確認中）',
+    ...mapLinks('赤鰐 名古屋'),
+    note: '夜の営業です。氷がなくなり次第終了します。',
+  },
+  {
+    id: 'kakaoc',
+    name: 'cafe KAKAOc',
+    days: [0],
+    daysLabel: '日曜',
+    open: '12:00',
+    close: '19:00',
+    address: '愛知県名古屋市（住所確認中）',
+    ...mapLinks('cafe KAKAOc 名古屋'),
+  },
+];
+
 export const shop = {
-  name: 'かき氷店（仮）',
-  nameEn: 'Kakigori Shop',
-  description: '天然氷とその日の果物でつくるかき氷のお店です。',
-  address: '東京都◯◯区◯◯1-2-3',
-  tel: '03-0000-0000',
+  name: 'White Project',
+  nameJa: 'かき氷専門店 White Project',
+  tagline: '白の上に、季節を。',
+  description:
+    '名古屋で間借り営業しているかき氷専門店です。曜日によって出店場所が変わります。その日の果実を削りたての氷にのせてお出しします。',
+  // TODO: 店主に確認 — 問い合わせ用のメールアドレス
   email: 'info@example.com',
-  businessHours: [
-    { days: '平日', open: '11:00', close: '18:00' },
-    { days: '土日祝', open: '10:00', close: '19:00', note: '氷がなくなり次第終了' },
-  ] satisfies BusinessHour[],
-  closedNote: '定休日: 火曜日',
-  parking: '専用駐車場なし。近隣のコインパーキングをご利用ください。',
-  payments: ['現金', 'PayPay', 'クレジットカード'],
-  /** Googleマップの共有リンク（別タブで開く用） */
-  mapUrl: 'https://maps.google.com/?q=' + encodeURIComponent('東京都◯◯区◯◯1-2-3'),
-  /** Googleマップの埋め込みiframe用URL */
-  mapEmbedUrl: 'https://maps.google.com/maps?q=' + encodeURIComponent('東京都◯◯区◯◯1-2-3') + '&output=embed',
+  payments: ['現金', 'PayPay'],
   sns: {
-    instagram: 'https://www.instagram.com/example/',
-  } satisfies Sns,
+    instagram: 'https://www.instagram.com/whiteproject_kakigori/',
+    threads: 'https://www.threads.net/@whiteproject_kakigori',
+  },
+  venues,
 };
 ```
 
-- [ ] **Step 2: 型チェックが通ることを確認**
+- [ ] **Step 2: 型チェック**
 
 Run: `npx astro check`
 Expected: `0 errors`
@@ -276,24 +376,25 @@ Expected: `0 errors`
 
 ```bash
 git add src/data/shop.ts
-git commit -m "feat: 店舗情報の単一情報源を追加"
+git commit -m "feat: 会場データを含む店舗情報の単一情報源を追加"
 ```
 
 ---
 
-### Task 3: 共通レイアウトとヘッダー・フッター
+### Task 3: 共通レイアウト
 
 **Files:**
+- Create: `src/components/SnsLinks.astro`
+- Create: `src/components/SectionHeading.astro`
 - Create: `src/components/Header.astro`
 - Create: `src/components/Footer.astro`
-- Create: `src/components/SnsLinks.astro`
-- Create: `src/components/BusinessHours.astro`
 - Create: `src/layouts/BaseLayout.astro`
+- Modify: `src/pages/index.astro`（Task 1の暫定内容を差し替え。Task 8で本実装にする）
 
 **Interfaces:**
-- Consumes: `shop` from `src/data/shop.ts`
-- Produces: `BaseLayout` — props `{ title: string; description?: string; ogImage?: string }`。`title` はサイト名を自動で後置するため、ページ側は「メニュー」のようにページ名だけ渡す
-- Produces: `BusinessHours` — props なし。`shop.businessHours` を直接読む
+- Consumes: `shop`, `venues`（Task 2）
+- Produces: `BaseLayout` — props `{ title: string; description?: string; ogImage?: string; wide?: boolean }`。`wide` が true のとき `<main>` の左右パディングと最大幅を外す（ヒーローを全幅にするため）
+- Produces: `SectionHeading` — props `{ label: string; title: string }`。`label` はJostの英字、`title` は日本語見出し
 - Produces: `SnsLinks` — props なし
 
 - [ ] **Step 1: `src/components/SnsLinks.astro` を作成**
@@ -303,9 +404,8 @@ git commit -m "feat: 店舗情報の単一情報源を追加"
 import { shop } from '../data/shop';
 
 const links = [
-  { key: 'instagram', label: 'Instagram', url: shop.sns.instagram },
-  { key: 'x', label: 'X', url: shop.sns.x },
-  { key: 'line', label: 'LINE', url: shop.sns.line },
+  { label: 'Instagram', url: shop.sns.instagram },
+  { label: 'Threads', url: shop.sns.threads },
 ].filter((link) => Boolean(link.url));
 ---
 
@@ -315,6 +415,7 @@ const links = [
       <li>
         <a href={link.url} target="_blank" rel="noopener noreferrer">
           {link.label}
+          <span aria-hidden="true">↗</span>
         </a>
       </li>
     ))
@@ -324,84 +425,80 @@ const links = [
 <style>
   .sns {
     display: flex;
+    flex-wrap: wrap;
     gap: var(--space-md);
   }
 
-  .sns a {
+  a {
+    font-family: var(--font-latin);
+    font-weight: 300;
+    font-size: 0.85rem;
+    letter-spacing: 0.16em;
     text-decoration: none;
-    font-size: 0.9rem;
+    color: var(--ice-deep);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
   }
 
-  .sns a:hover {
-    text-decoration: underline;
+  a span {
+    font-size: 0.7em;
+    transition: transform 0.3s ease;
+  }
+
+  a:hover span {
+    transform: translate(2px, -2px);
   }
 </style>
 ```
 
-- [ ] **Step 2: `src/components/BusinessHours.astro` を作成**
+- [ ] **Step 2: `src/components/SectionHeading.astro` を作成**
+
+英字ラベルの下に細いヘアラインを引く。これがサイト唯一の罫線用途。
 
 ```astro
 ---
-import { shop } from '../data/shop';
+type Props = {
+  label: string;
+  title: string;
+};
+
+const { label, title } = Astro.props;
 ---
 
-<div class="hours">
-  <dl>
-    {
-      shop.businessHours.map((hour) => (
-        <>
-          <dt>{hour.days}</dt>
-          <dd>
-            {hour.open}〜{hour.close}
-            {hour.note && <span class="note">（{hour.note}）</span>}
-          </dd>
-        </>
-      ))
-    }
-  </dl>
-  <p class="closed">{shop.closedNote}</p>
+<div class="heading">
+  <p class="u-label">{label}</p>
+  <h2>{title}</h2>
 </div>
 
 <style>
-  dl {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: var(--space-sm) var(--space-md);
-    margin: 0;
+  .heading {
+    margin-bottom: var(--space-lg);
   }
 
-  dt {
-    font-weight: 700;
-    white-space: nowrap;
-  }
-
-  dd {
-    margin: 0;
-  }
-
-  .note {
-    color: var(--color-text-muted);
-    font-size: 0.85rem;
-  }
-
-  .closed {
-    margin-top: var(--space-md);
-    color: var(--color-text-muted);
+  h2 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(1.35rem, 3vw, 1.75rem);
+    letter-spacing: 0.16em;
+    margin-top: var(--space-2xs);
   }
 </style>
 ```
 
 - [ ] **Step 3: `src/components/Header.astro` を作成**
 
-現在地のリンクに `aria-current="page"` を付ける。`Astro.url.pathname` は末尾スラッシュ付きで来るため正規化する。
+中央にロゴ、左にナビ。参考サイトに倣い、地は塗らず透過させる。
 
 ```astro
 ---
+import { Image } from 'astro:assets';
+import logo from '../assets/images/brand/logo-on-white.png';
 import { shop } from '../data/shop';
 
 const navItems = [
   { href: '/menu', label: 'メニュー' },
-  { href: '/access', label: '店舗情報' },
+  { href: '/venues', label: '出店情報' },
   { href: '/news', label: 'お知らせ' },
   { href: '/contact', label: 'お問い合わせ' },
 ];
@@ -410,65 +507,102 @@ const current = Astro.url.pathname.replace(/\/$/, '') || '/';
 ---
 
 <header>
-  <div class="inner">
-    <a class="logo" href="/">{shop.name}</a>
-    <nav aria-label="メインナビゲーション">
-      <ul>
-        {
-          navItems.map((item) => (
-            <li>
-              <a
-                href={item.href}
-                aria-current={current === item.href || current.startsWith(item.href + '/') ? 'page' : undefined}
-              >
-                {item.label}
-              </a>
-            </li>
-          ))
-        }
-      </ul>
-    </nav>
-  </div>
+  <nav aria-label="メインナビゲーション">
+    <ul>
+      {
+        navItems.map((item) => (
+          <li>
+            <a
+              href={item.href}
+              aria-current={
+                current === item.href || current.startsWith(item.href + '/') ? 'page' : undefined
+              }
+            >
+              {item.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+
+  <a class="logo" href="/" aria-label={`${shop.name} トップページ`}>
+    <Image src={logo} alt={shop.name} width={104} height={104} loading="eager" />
+  </a>
 </header>
 
 <style>
   header {
-    border-bottom: 1px solid var(--color-border);
-    background-color: var(--color-bg);
-  }
-
-  .inner {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: var(--space-sm);
     max-width: var(--max-width);
     margin-inline: auto;
-    padding: var(--space-md);
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-md);
+    padding: var(--space-sm) var(--space-md);
   }
 
   .logo {
-    font-size: 1.1rem;
-    font-weight: 700;
-    text-decoration: none;
-    color: var(--color-text);
+    grid-column: 2;
+    justify-self: center;
+    order: -1;
+  }
+
+  .logo :global(img) {
+    width: clamp(56px, 9vw, 76px);
+    height: auto;
+  }
+
+  nav {
+    grid-column: 1 / -1;
+    grid-row: 2;
   }
 
   nav ul {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-md);
+    justify-content: center;
+    gap: var(--space-sm) var(--space-md);
   }
 
   nav a {
+    font-size: 0.8rem;
+    letter-spacing: 0.18em;
     text-decoration: none;
-    font-size: 0.95rem;
+    color: var(--sumi-soft);
+    padding-bottom: 0.2em;
+    transition: color 0.3s ease;
+  }
+
+  nav a:hover {
+    color: var(--sumi);
   }
 
   nav a[aria-current='page'] {
-    font-weight: 700;
-    border-bottom: 2px solid var(--color-accent);
+    color: var(--sumi);
+    border-bottom: 1px solid var(--ice);
+  }
+
+  /* 広い画面では左にナビ、中央にロゴの1行組みにする */
+  @media (min-width: 900px) {
+    header {
+      padding-block: var(--space-md);
+    }
+
+    nav {
+      grid-column: 1;
+      grid-row: 1;
+    }
+
+    nav ul {
+      justify-content: flex-start;
+    }
+
+    .logo {
+      order: 0;
+    }
   }
 </style>
 ```
@@ -477,9 +611,8 @@ const current = Astro.url.pathname.replace(/\/$/, '') || '/';
 
 ```astro
 ---
-import { shop } from '../data/shop';
-import BusinessHours from './BusinessHours.astro';
 import SnsLinks from './SnsLinks.astro';
+import { shop } from '../data/shop';
 
 const year = new Date().getFullYear();
 ---
@@ -487,25 +620,33 @@ const year = new Date().getFullYear();
 <footer>
   <div class="inner">
     <div>
-      <p class="name">{shop.name}</p>
-      <p class="address">{shop.address}</p>
-      <p class="tel">
-        <a href={`tel:${shop.tel.replace(/-/g, '')}`}>{shop.tel}</a>
-      </p>
+      <p class="name">{shop.nameJa}</p>
+      <p class="tagline">{shop.tagline}</p>
       <SnsLinks />
     </div>
-    <div>
-      <BusinessHours />
-    </div>
+
+    <dl class="venues">
+      {
+        shop.venues.map((venue) => (
+          <div>
+            <dt>{venue.name}</dt>
+            <dd class="u-num">
+              {venue.daysLabel}　{venue.open}–{venue.close}
+            </dd>
+          </div>
+        ))
+      }
+    </dl>
   </div>
-  <p class="copyright">&copy; {year} {shop.name}</p>
+
+  <p class="copyright u-num">&copy; {year} {shop.name}</p>
 </footer>
 
 <style>
   footer {
-    margin-top: var(--space-xl);
-    border-top: 1px solid var(--color-border);
-    padding: var(--space-lg) var(--space-md);
+    margin-top: var(--space-2xl);
+    padding: var(--space-xl) var(--space-md) var(--space-lg);
+    background: linear-gradient(180deg, var(--paper) 0%, var(--mist) 100%);
   }
 
   .inner {
@@ -513,31 +654,49 @@ const year = new Date().getFullYear();
     margin-inline: auto;
     display: grid;
     gap: var(--space-lg);
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   }
 
   .name {
-    font-weight: 700;
+    font-family: var(--font-display);
+    letter-spacing: 0.16em;
   }
 
-  .address,
-  .tel {
+  .tagline {
+    color: var(--sumi-soft);
+    font-size: 0.85rem;
+    margin-bottom: var(--space-sm);
+  }
+
+  .venues {
+    display: grid;
+    gap: var(--space-sm);
+    align-content: start;
+  }
+
+  .venues dt {
     font-size: 0.9rem;
-    color: var(--color-text-muted);
+    letter-spacing: 0.12em;
+  }
+
+  .venues dd {
+    font-size: 0.85rem;
+    color: var(--sumi-soft);
   }
 
   .copyright {
     max-width: var(--max-width);
-    margin: var(--space-lg) auto 0;
-    font-size: 0.8rem;
-    color: var(--color-text-muted);
+    margin: var(--space-xl) auto 0;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    color: var(--sumi-soft);
   }
 </style>
 ```
 
 - [ ] **Step 5: `src/layouts/BaseLayout.astro` を作成**
 
-JSON-LDは schema.org の `IceCreamShop` 型を使う（かき氷屋に最も近い型）。
+間借り営業のため構造化データに単一の住所は書かない。`areaServed` で地域を示す。
 
 ```astro
 ---
@@ -550,22 +709,24 @@ type Props = {
   title: string;
   description?: string;
   ogImage?: string;
+  /** ヒーローなど全幅要素を置くページで true にする */
+  wide?: boolean;
 };
 
-const { title, description = shop.description, ogImage = '/ogp.jpg' } = Astro.props;
+const { title, description = shop.description, ogImage = '/ogp.svg', wide = false } = Astro.props;
 
-const pageTitle = title === shop.name ? shop.name : `${title} | ${shop.name}`;
+const pageTitle = title === shop.name ? `${shop.nameJa}` : `${title} | ${shop.name}`;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const ogImageUrl = new URL(ogImage, Astro.site);
 
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'IceCreamShop',
-  name: shop.name,
+  name: shop.nameJa,
+  alternateName: shop.name,
   description: shop.description,
-  address: shop.address,
-  telephone: shop.tel,
   url: canonical.href,
+  areaServed: '愛知県名古屋市',
   sameAs: Object.values(shop.sns).filter(Boolean),
 };
 ---
@@ -577,6 +738,14 @@ const jsonLd = {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="canonical" href={canonical.href} />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400&family=Shippori+Mincho&family=Zen+Kaku+Gothic+New:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+
     <title>{pageTitle}</title>
     <meta name="description" content={description} />
     <meta property="og:type" content="website" />
@@ -584,13 +753,13 @@ const jsonLd = {
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical.href} />
     <meta property="og:image" content={ogImageUrl.href} />
-    <meta property="og:site_name" content={shop.name} />
+    <meta property="og:site_name" content={shop.nameJa} />
     <meta name="twitter:card" content="summary_large_image" />
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />
   </head>
   <body>
     <Header />
-    <main>
+    <main class={wide ? 'wide' : ''}>
       <slot />
     </main>
     <Footer />
@@ -601,14 +770,18 @@ const jsonLd = {
   main {
     max-width: var(--max-width);
     margin-inline: auto;
-    padding: var(--space-lg) var(--space-md);
+    padding: var(--space-lg) var(--space-md) 0;
+  }
+
+  main.wide {
+    max-width: none;
+    padding-inline: 0;
+    padding-top: 0;
   }
 </style>
 ```
 
-- [ ] **Step 6: `src/pages/index.astro` をBaseLayout経由に差し替えて表示確認**
-
-Task 7で本実装に差し替えるまでの暫定。
+- [ ] **Step 6: `src/pages/index.astro` を暫定差し替え**
 
 ```astro
 ---
@@ -617,7 +790,7 @@ import { shop } from '../data/shop';
 ---
 
 <BaseLayout title={shop.name}>
-  <h1>{shop.name}</h1>
+  <h1>{shop.tagline}</h1>
 </BaseLayout>
 ```
 
@@ -632,7 +805,14 @@ Expected: `0 errors`
 - [ ] **Step 8: 目視確認**
 
 Run: `npm run dev`
-`http://localhost:4321/` を開き、ヘッダーのナビ4項目・フッターの営業時間とSNSリンクが表示され、ブラウザ幅を375pxまで狭めてもレイアウトが崩れないことを確認する。確認後Ctrl+Cで停止。
+`http://localhost:4321/` を開き、以下を確認する。
+
+- ヘッダー中央にロゴが出て、900px以上ではナビが左・ロゴが中央の1行になる
+- 375px幅ではロゴが上、ナビが下の2段になり折り返しが破綻しない
+- フッターに2会場の曜日と時刻がJost（数字が等幅）で出る
+- 明朝・ゴシック・Jostの3書体が実際に読み込まれている（DevToolsのNetworkでfonts.gstatic.comへのリクエストを確認）
+
+確認後Ctrl+Cで停止。
 
 - [ ] **Step 9: コミット**
 
@@ -643,33 +823,36 @@ git commit -m "feat: 共通レイアウトとヘッダー・フッターを追�
 
 ---
 
-### Task 4: Content Collectionsの定義とサンプルコンテンツ
+### Task 4: Content Collectionsとサンプルコンテンツ
 
 **Files:**
 - Create: `src/content.config.ts`
 - Create: `src/assets/images/menu/placeholder.svg`
-- Create: `src/content/menu/uji-kintoki.md`
-- Create: `src/content/menu/momo-milk.md`
-- Create: `src/content/news/2026-07-01-summer-open.md`
+- Create: `src/content/menu/momo.md`
+- Create: `src/content/menu/momo-earlgrey.md`
+- Create: `src/content/menu/sakuranbo.md`
+- Create: `src/content/news/2026-06-01-open.md`
 
 **Interfaces:**
-- Produces: コレクション `menu`（フィールド: `name`, `price`, `description`, `image`, `season`, `available`, `order`）
-- Produces: コレクション `news`（フィールド: `title`, `date`, `category`, `draft`）。エントリの `id` は日付プレフィックスを除いたslug
+- Produces: コレクション `menu`（`name`, `price`, `description`, `image`, `season`, `available`, `order`）
+- Produces: コレクション `news`（`title`, `date`, `category`, `draft`）。エントリの `id` は日付プレフィックスを除いたslug
 
 - [ ] **Step 1: プレースホルダ画像を作成**
+
+3:4の縦長。かき氷の写真がこの比率で入る。
 
 `src/assets/images/menu/placeholder.svg`:
 
 ```svg
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600">
-  <rect width="800" height="600" fill="#e8f4f8" />
-  <text x="400" y="310" font-family="sans-serif" font-size="40" fill="#4aa3c7" text-anchor="middle">写真準備中</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800" width="600" height="800">
+  <rect width="600" height="800" fill="#e4f2f8" />
+  <text x="300" y="410" font-family="sans-serif" font-size="30" fill="#1c6b85" text-anchor="middle" letter-spacing="6">写真準備中</text>
 </svg>
 ```
 
 - [ ] **Step 2: `src/content.config.ts` を作成**
 
-`schema` を関数形式にすると `image()` ヘルパーが使える。`news` の `generateId` でファイル名の日付プレフィックスを除去し、slugをそのままURLにする。
+`schema` を関数形式にすると `image()` ヘルパーが使える。`news` は `generateId` でファイル名の日付プレフィックスを外し、slugをそのままURLにする。
 
 ```ts
 import { defineCollection } from 'astro:content';
@@ -694,13 +877,13 @@ const news = defineCollection({
   loader: glob({
     pattern: '**/*.md',
     base: './src/content/news',
-    // ファイル名 2026-07-01-summer-open.md → id "summer-open"
+    // 2026-06-01-open.md → id "open"
     generateId: ({ entry }) => entry.replace(/^\d{4}-\d{2}-\d{2}-/, '').replace(/\.md$/, ''),
   }),
   schema: z.object({
     title: z.string(),
     date: z.coerce.date(),
-    category: z.enum(['休業', '新メニュー', 'イベント', 'その他']),
+    category: z.enum(['休業', '新メニュー', '出店情報', 'その他']),
     draft: z.boolean().default(false),
   }),
 });
@@ -708,65 +891,79 @@ const news = defineCollection({
 export const collections = { menu, news };
 ```
 
-- [ ] **Step 3: メニューのサンプルを2件作成**
+- [ ] **Step 3: メニューのサンプルを3件作成**
 
-`src/content/menu/uji-kintoki.md`:
+Instagramで確認できた商品を使う。価格は未確認のため仮。
 
-```markdown
----
-name: 宇治金時
-price: 900
-description: 京都・宇治の抹茶を濃いめに点てたシロップと、自家炊きの粒あん。
-image: ../../assets/images/menu/placeholder.svg
-season: all
-available: true
-order: 10
----
-
-創業から変わらない定番です。抹茶は注文が入ってから点てています。
-```
-
-`src/content/menu/momo-milk.md`:
+`src/content/menu/momo.md`:
 
 ```markdown
 ---
-name: 桃ミルク
-price: 1200
-description: 完熟した白桃をその日の朝に剥いて、練乳ミルクと合わせました。
+name: 桃
+price: 1400
+description: その日に届いた桃をむいて、果肉と自家製のシロップだけで仕上げます。
 image: ../../assets/images/menu/placeholder.svg
 season: summer
 available: true
-order: 20
+order: 10
 ---
 
 桃の入荷状況によってお休みする日があります。
 ```
 
-- [ ] **Step 4: お知らせのサンプルを1件作成**
-
-`src/content/news/2026-07-01-summer-open.md`:
+`src/content/menu/momo-earlgrey.md`:
 
 ```markdown
 ---
-title: 夏季営業を開始しました
-date: 2026-07-01
+name: 桃アールグレイ
+price: 1500
+description: 桃に、香りを立てたアールグレイのクリームを重ねました。
+image: ../../assets/images/menu/placeholder.svg
+season: summer
+available: true
+order: 20
+---
+```
+
+`src/content/menu/sakuranbo.md`:
+
+```markdown
+---
+name: さくらんぼ
+price: 1600
+description: 粒のまま煮含めたさくらんぼと、種から取った香りのシロップ。
+image: ../../assets/images/menu/placeholder.svg
+season: summer
+available: true
+order: 30
+---
+```
+
+- [ ] **Step 4: お知らせのサンプルを作成**
+
+`src/content/news/2026-06-01-open.md`:
+
+```markdown
+---
+title: 間借りでかき氷屋をはじめます
+date: 2026-06-01
 category: その他
 draft: false
 ---
 
-本日より夏季営業を開始しました。暑い日が続きますので、氷がなくなり次第閉店する場合があります。
+6月から、名古屋の2か所を間借りしてかき氷をお出しします。
 
-最新の営業状況はInstagramでお知らせしています。
+月曜から土曜は夜の赤鰐で、日曜は昼の cafe KAKAOc です。氷がなくなり次第終了しますので、当日の状況はInstagramをご覧ください。
 ```
 
 - [ ] **Step 5: スキーマが機能していることを確認（意図的に壊す）**
 
-`src/content/menu/uji-kintoki.md` の `price: 900` を一時的に `price: "900円"` に変更する。
+`src/content/menu/momo.md` の `price: 1400` を一時的に `price: "1400円"` に変更する。
 
 Run: `npm run build`
-Expected: FAIL。`menu → uji-kintoki` のframtmatterで `price` が number でないという趣旨のエラーが出る
+Expected: FAIL。`menu → momo` の `price` が number でない旨のエラーが出る
 
-確認できたら `price: 900` に戻す。
+確認できたら `price: 1400` に戻す。
 
 - [ ] **Step 6: ビルドが通ることを確認**
 
@@ -782,19 +979,358 @@ git commit -m "feat: メニューとお知らせのコレクション定義を�
 
 ---
 
-### Task 5: メニューページ
+### Task 5: 出店情報と「本日の出店」
+
+このサイトのシグネチャー要素。トップと `/venues` の両方で使う。
+
+**Files:**
+- Create: `src/components/VenueCard.astro`
+- Create: `src/components/TodayVenue.astro`
+- Create: `src/pages/venues.astro`
+
+**Interfaces:**
+- Consumes: `shop`, `venues`, `Venue`（Task 2）、`SectionHeading`、`BaseLayout`（Task 3）
+- Produces: `VenueCard` — props `{ venue: Venue; showMap?: boolean }`。`showMap` 既定 false
+- Produces: `TodayVenue` — props なし。`shop.venues` を読む
+
+- [ ] **Step 1: `src/components/VenueCard.astro` を作成**
+
+枠線なし。会場名と時刻の対比だけで構造を作る。
+
+```astro
+---
+import type { Venue } from '../data/shop';
+
+type Props = {
+  venue: Venue;
+  showMap?: boolean;
+};
+
+const { venue, showMap = false } = Astro.props;
+---
+
+<article id={venue.id} class="venue">
+  <p class="u-label">{venue.daysLabel}</p>
+  <h3>{venue.name}</h3>
+  <p class="time u-num">{venue.open} – {venue.close}</p>
+  <p class="address">{venue.address}</p>
+  {venue.note && <p class="note">{venue.note}</p>}
+  <p class="map-link">
+    <a href={venue.mapUrl} target="_blank" rel="noopener noreferrer">地図を開く ↗</a>
+  </p>
+
+  {
+    showMap && (
+      <iframe
+        src={venue.mapEmbedUrl}
+        title={`${venue.name}の地図`}
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"
+        allowfullscreen
+      />
+    )
+  }
+</article>
+
+<style>
+  .venue {
+    display: grid;
+    gap: var(--space-2xs);
+  }
+
+  h3 {
+    font-family: var(--font-display);
+    font-size: clamp(1.4rem, 3.5vw, 1.9rem);
+    font-weight: 400;
+    letter-spacing: 0.14em;
+    margin-top: var(--space-2xs);
+  }
+
+  .time {
+    font-size: 1.05rem;
+    color: var(--ice-deep);
+  }
+
+  .address,
+  .note {
+    font-size: 0.85rem;
+    color: var(--sumi-soft);
+  }
+
+  .map-link {
+    margin-top: var(--space-xs);
+  }
+
+  .map-link a {
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+    color: var(--ice-deep);
+    text-decoration: none;
+    border-bottom: 1px solid var(--ice);
+    padding-bottom: 0.15em;
+  }
+
+  iframe {
+    width: 100%;
+    height: 320px;
+    border: 0;
+    border-radius: 4px;
+    margin-top: var(--space-md);
+  }
+</style>
+```
+
+- [ ] **Step 2: `src/components/TodayVenue.astro` を作成**
+
+JS無効時は両会場が同じ扱いで並ぶ。JSが動くと今日の会場だけが強調される。見出しの文言もJSが差し替える。
+
+```astro
+---
+import { shop } from '../data/shop';
+---
+
+<section class="today" aria-labelledby="today-heading">
+  <p class="u-label">Today</p>
+  <p class="lead" id="today-heading" data-today-lead>本日の出店場所</p>
+
+  <ul class="list">
+    {
+      shop.venues.map((venue) => (
+        <li class="item" data-venue data-days={venue.days.join(',')} data-name={venue.name}>
+          <span class="days u-num">{venue.daysLabel}</span>
+          <span class="name">{venue.name}</span>
+          <span class="time u-num">
+            {venue.open} – {venue.close}
+          </span>
+        </li>
+      ))
+    }
+  </ul>
+
+  <p class="note">
+    氷がなくなり次第終了します。当日の状況は
+    <a href={shop.sns.instagram} target="_blank" rel="noopener noreferrer">Instagram</a>
+    でお知らせしています。
+  </p>
+</section>
+
+<script>
+  const lead = document.querySelector<HTMLElement>('[data-today-lead]');
+  const items = document.querySelectorAll<HTMLElement>('[data-venue]');
+
+  if (lead && items.length > 0) {
+    const today = new Date().getDay();
+    let todayName: string | null = null;
+
+    items.forEach((item) => {
+      const days = (item.dataset.days ?? '')
+        .split(',')
+        .filter(Boolean)
+        .map(Number);
+      const isToday = days.includes(today);
+      item.classList.toggle('is-today', isToday);
+      if (isToday) {
+        todayName = item.dataset.name ?? null;
+      }
+    });
+
+    lead.textContent = todayName ? `本日は ${todayName} にいます` : '本日の出店はお休みです';
+  }
+</script>
+
+<style>
+  .today {
+    max-width: var(--max-width);
+    margin-inline: auto;
+    padding: var(--space-xl) var(--space-md) 0;
+  }
+
+  .lead {
+    font-family: var(--font-display);
+    font-size: clamp(1.3rem, 4vw, 1.9rem);
+    letter-spacing: 0.14em;
+    margin-top: var(--space-2xs);
+  }
+
+  .list {
+    display: grid;
+    gap: var(--space-sm);
+    margin-top: var(--space-lg);
+  }
+
+  .item {
+    display: grid;
+    grid-template-columns: 5.5rem 1fr;
+    gap: var(--space-2xs) var(--space-sm);
+    align-items: baseline;
+    padding: var(--space-sm) 0;
+    opacity: 0.45;
+    transition: opacity 0.4s ease;
+  }
+
+  /* JSが動かない環境では全会場を等しく表示する */
+  .list:not(:has(.is-today)) .item {
+    opacity: 1;
+  }
+
+  .item.is-today {
+    opacity: 1;
+  }
+
+  .days {
+    font-size: 0.8rem;
+    letter-spacing: 0.16em;
+    color: var(--sumi-soft);
+  }
+
+  .name {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    letter-spacing: 0.12em;
+  }
+
+  .time {
+    grid-column: 2;
+    font-size: 0.95rem;
+    color: var(--ice-deep);
+  }
+
+  .item.is-today .name::after {
+    content: "";
+    display: inline-block;
+    width: 0.4em;
+    height: 0.4em;
+    margin-left: 0.7em;
+    border-radius: 50%;
+    background-color: var(--ice);
+    vertical-align: 0.15em;
+  }
+
+  .note {
+    margin-top: var(--space-md);
+    font-size: 0.8rem;
+    color: var(--sumi-soft);
+  }
+
+  .note a {
+    color: var(--ice-deep);
+  }
+
+  @media (min-width: 720px) {
+    .item {
+      grid-template-columns: 6rem 1fr auto;
+    }
+
+    .time {
+      grid-column: 3;
+    }
+  }
+</style>
+```
+
+- [ ] **Step 3: `src/pages/venues.astro` を作成**
+
+```astro
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import VenueCard from '../components/VenueCard.astro';
+import TodayVenue from '../components/TodayVenue.astro';
+import { shop } from '../data/shop';
+---
+
+<BaseLayout
+  title="出店情報"
+  description="曜日ごとの出店場所と営業時間のご案内です。名古屋市内の2か所で間借り営業しています。"
+>
+  <SectionHeading label="Venues" title="出店情報" />
+
+  <p class="intro">
+    決まったお店を持たず、曜日によって場所が変わります。お越しになる前に曜日と時間をご確認ください。
+  </p>
+
+  <TodayVenue />
+
+  <div class="venues">
+    {shop.venues.map((venue) => <VenueCard venue={venue} showMap />)}
+  </div>
+
+  <section class="payments">
+    <p class="u-label">Payment</p>
+    <p>{shop.payments.join(' / ')}</p>
+  </section>
+</BaseLayout>
+
+<style>
+  .intro {
+    max-width: var(--measure);
+    color: var(--sumi-soft);
+  }
+
+  .venues {
+    display: grid;
+    gap: var(--space-xl);
+    margin-top: var(--space-xl);
+  }
+
+  .payments {
+    margin-top: var(--space-xl);
+  }
+
+  @media (min-width: 900px) {
+    .venues {
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-lg);
+    }
+  }
+</style>
+```
+
+**注意:** `TodayVenue` は自前で `max-width` と `padding` を持つため、`main` の中に置くと二重に効く。`/venues` では見た目の破綻がないか Step 5 で必ず確認し、必要なら `.today { padding-inline: 0; }` を `venues.astro` 側で上書きすること。
+
+- [ ] **Step 4: ビルドと型チェック**
+
+Run: `npm run build`
+Expected: 成功
+
+Run: `npx astro check`
+Expected: `0 errors`
+
+- [ ] **Step 5: 目視確認（シグネチャー要素の検証）**
+
+Run: `npm run dev`
+`http://localhost:4321/venues` を開き、以下を順に確認する。
+
+1. 今日の曜日に対応する会場だけが濃く表示され、見出しが「本日は ◯◯ にいます」に変わっている
+2. DevToolsのコンソールでエラーが出ていない
+3. **JSを無効化して再読み込みし**（DevTools → Settings → Debugger → Disable JavaScript）、見出しが「本日の出店場所」のまま、2会場が**同じ濃さで**表示されること
+4. JSを戻し、375px幅で会場名・時刻・地図が破綻しないこと
+5. 上記「注意」の通り、`TodayVenue` の左右余白が二重になっていないか
+
+確認後Ctrl+Cで停止。
+
+- [ ] **Step 6: コミット**
+
+```bash
+git add -A
+git commit -m "feat: 出店情報ページと本日の出店表示を追加"
+```
+
+---
+
+### Task 6: メニューページ
 
 **Files:**
 - Create: `src/components/MenuCard.astro`
 - Create: `src/pages/menu.astro`
 
 **Interfaces:**
-- Consumes: コレクション `menu`（Task 4）、`BaseLayout`（Task 3）
+- Consumes: コレクション `menu`（Task 4）、`SectionHeading`、`BaseLayout`（Task 3）
 - Produces: `MenuCard` — props `{ entry: CollectionEntry<'menu'> }`
 
 - [ ] **Step 1: `src/components/MenuCard.astro` を作成**
 
-画像は `astro:assets` の `Image` に通して圧縮・WebP変換させる。
+3:4の縦長写真の右に、商品名を縦組みで置く。枠線・角丸カードは使わない（写真の角丸のみ）。
 
 ```astro
 ---
@@ -810,120 +1346,116 @@ const { name, price, description, image } = entry.data;
 ---
 
 <article class="card">
-  <Image src={image} alt={`${name}の写真`} width={400} height={300} />
-  <div class="body">
-    <h3>{name}</h3>
-    <p class="price">{price.toLocaleString('ja-JP')}円<span class="tax">（税込）</span></p>
-    <p class="description">{description}</p>
+  <div class="visual">
+    <Image src={image} alt={`${name}のかき氷`} width={600} height={800} />
+    <h3 class="u-vertical">{name}</h3>
   </div>
+  <p class="price u-num">¥{price.toLocaleString('ja-JP')}</p>
+  <p class="description">{description}</p>
 </article>
 
 <style>
-  .card {
-    border: 1px solid var(--color-border);
-    border-radius: 12px;
-    overflow: hidden;
-    background-color: #fff;
+  .visual {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--space-sm);
+    align-items: start;
   }
 
-  .card :global(img) {
+  .visual :global(img) {
     width: 100%;
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 3 / 4;
     object-fit: cover;
-  }
-
-  .body {
-    padding: var(--space-md);
+    border-radius: 2px;
   }
 
   h3 {
-    font-size: 1.1rem;
+    font-size: clamp(1rem, 2.6vw, 1.2rem);
+    font-weight: 400;
+    padding-top: var(--space-xs);
   }
 
   .price {
-    color: var(--color-accent-dark);
-    font-weight: 700;
-  }
-
-  .tax {
-    font-size: 0.8rem;
-    font-weight: 400;
-    color: var(--color-text-muted);
+    margin-top: var(--space-sm);
+    font-size: 0.95rem;
+    color: var(--ice-deep);
   }
 
   .description {
-    font-size: 0.9rem;
-    color: var(--color-text-muted);
+    margin-top: var(--space-2xs);
+    font-size: 0.85rem;
+    line-height: 1.9;
+    color: var(--sumi-soft);
   }
 </style>
 ```
 
 - [ ] **Step 2: `src/pages/menu.astro` を作成**
 
-`available: false` の商品は除外し、通年と季節限定に分けて表示する。
+定番・季節限定のどちらも、該当商品がある場合だけ見出しごと表示する。
 
 ```astro
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import SectionHeading from '../components/SectionHeading.astro';
 import MenuCard from '../components/MenuCard.astro';
 
 const all = (await getCollection('menu', ({ data }) => data.available)).sort(
   (a, b) => a.data.order - b.data.order
 );
 
-const regular = all.filter((entry) => entry.data.season === 'all');
-const seasonal = all.filter((entry) => entry.data.season !== 'all');
+const groups = [
+  { key: 'regular', label: 'Standard', title: '定番', entries: all.filter((e) => e.data.season === 'all') },
+  { key: 'seasonal', label: 'Seasonal', title: '季節限定', entries: all.filter((e) => e.data.season !== 'all') },
+].filter((group) => group.entries.length > 0);
 ---
 
 <BaseLayout title="メニュー" description="かき氷のメニューと価格のご案内です。">
-  <h1>メニュー</h1>
+  <SectionHeading label="Menu" title="メニュー" />
 
-  <section>
-    <h2>定番</h2>
-    <div class="grid">
-      {regular.map((entry) => <MenuCard entry={entry} />)}
-    </div>
-  </section>
+  <p class="intro">
+    その日に届いた果実を使うため、内容は日によって変わります。仕入れの都合でお出しできない日があります。
+  </p>
 
   {
-    seasonal.length > 0 && (
-      <section>
-        <h2>季節限定</h2>
+    groups.map((group) => (
+      <section class="group">
+        <p class="u-label">{group.label}</p>
+        <h3 class="group-title">{group.title}</h3>
         <div class="grid">
-          {seasonal.map((entry) => (
+          {group.entries.map((entry) => (
             <MenuCard entry={entry} />
           ))}
         </div>
       </section>
-    )
+    ))
   }
-
-  <p class="note">仕入れの都合により、提供できない場合があります。</p>
 </BaseLayout>
 
 <style>
-  section {
+  .intro {
+    max-width: var(--measure);
+    color: var(--sumi-soft);
+  }
+
+  .group {
     margin-top: var(--space-xl);
   }
 
-  h2 {
-    font-size: 1.3rem;
-    padding-bottom: var(--space-sm);
-    border-bottom: 2px solid var(--color-accent);
+  .group-title {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 1.2rem;
+    letter-spacing: 0.16em;
+    margin-top: var(--space-2xs);
     margin-bottom: var(--space-lg);
   }
 
   .grid {
     display: grid;
-    gap: var(--space-lg);
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  }
-
-  .note {
-    margin-top: var(--space-lg);
-    font-size: 0.85rem;
-    color: var(--color-text-muted);
+    gap: var(--space-lg) var(--space-md);
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
   }
 </style>
 ```
@@ -939,7 +1471,15 @@ Expected: `0 errors`
 - [ ] **Step 4: 目視確認**
 
 Run: `npm run dev`
-`http://localhost:4321/menu` を開き、「定番」に宇治金時、「季節限定」に桃ミルクが出ること、価格が「900円（税込）」の形式で出ることを確認。確認後Ctrl+Cで停止。
+`http://localhost:4321/menu` を開き、以下を確認する。
+
+- 「定番」の見出しごと非表示になっている（サンプルは全て季節限定のため）
+- 「季節限定」に3件並ぶ
+- 商品名が写真の右に**縦組み**で出る
+- 価格が `¥1,400` の形でJost（等幅数字）で出る
+- 375px幅で縦組みの商品名が写真の外にはみ出さない
+
+確認後Ctrl+Cで停止。
 
 - [ ] **Step 5: コミット**
 
@@ -950,7 +1490,7 @@ git commit -m "feat: メニューページを追加"
 
 ---
 
-### Task 6: お知らせ一覧と詳細
+### Task 7: お知らせ一覧と詳細
 
 **Files:**
 - Create: `src/components/NewsList.astro`
@@ -959,9 +1499,9 @@ git commit -m "feat: メニューページを追加"
 - Create: `src/pages/news/[slug].astro`
 
 **Interfaces:**
-- Consumes: コレクション `news`（Task 4）、`BaseLayout`（Task 3）
-- Produces: `NewsList` — props `{ entries: CollectionEntry<'news'>[]; limit?: number }`。トップページ（Task 7）が `limit={3}` で再利用する
-- Produces: 日付整形は各所で必要になるため `NewsList` と `NewsLayout` の両方で `toLocaleDateString('ja-JP')` を使い、表記を「2026年7月1日」に揃える
+- Consumes: コレクション `news`（Task 4）、`SectionHeading`、`BaseLayout`（Task 3）
+- Produces: `NewsList` — props `{ entries: CollectionEntry<'news'>[]; limit?: number }`。トップ（Task 8）が `limit={3}` で再利用する
+- 日付表記は `NewsList` と `NewsLayout` の両方で `toLocaleDateString('ja-JP')` を使い「2026年6月1日」に揃える
 
 - [ ] **Step 1: `src/components/NewsList.astro` を作成**
 
@@ -989,7 +1529,9 @@ const formatDate = (date: Date) =>
       {items.map((entry) => (
         <li>
           <a href={`/news/${entry.id}`}>
-            <time datetime={entry.data.date.toISOString()}>{formatDate(entry.data.date)}</time>
+            <time class="u-num" datetime={entry.data.date.toISOString()}>
+              {formatDate(entry.data.date)}
+            </time>
             <span class="category">{entry.data.category}</span>
             <span class="title">{entry.data.title}</span>
           </a>
@@ -1000,50 +1542,51 @@ const formatDate = (date: Date) =>
 }
 
 <style>
-  .list li + li {
-    border-top: 1px solid var(--color-border);
-  }
-
   .list a {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-sm) var(--space-md);
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-2xs) var(--space-sm);
     padding: var(--space-md) 0;
     text-decoration: none;
-    color: var(--color-text);
+    transition: opacity 0.3s ease;
   }
 
-  .list a:hover .title {
-    text-decoration: underline;
+  .list a:hover {
+    opacity: 0.6;
   }
 
   time {
-    font-size: 0.85rem;
-    color: var(--color-text-muted);
-    font-variant-numeric: tabular-nums;
+    font-size: 0.8rem;
+    color: var(--sumi-soft);
   }
 
   .category {
-    font-size: 0.75rem;
-    padding: 0.1rem 0.6rem;
-    border: 1px solid var(--color-accent);
-    border-radius: 999px;
-    color: var(--color-accent-dark);
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    color: var(--ice-deep);
+    justify-self: start;
   }
 
   .title {
-    flex: 1 1 100%;
-  }
-
-  @media (min-width: 640px) {
-    .title {
-      flex: 1;
-    }
+    grid-column: 1 / -1;
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    letter-spacing: 0.1em;
   }
 
   .empty {
-    color: var(--color-text-muted);
+    color: var(--sumi-soft);
+  }
+
+  @media (min-width: 720px) {
+    .list a {
+      grid-template-columns: 8rem 5rem 1fr;
+      align-items: baseline;
+    }
+
+    .title {
+      grid-column: 3;
+    }
   }
 </style>
 ```
@@ -1068,39 +1611,42 @@ const formatDate = (value: Date) =>
 
 <BaseLayout title={title} description={`${formatDate(date)}のお知らせ`}>
   <article>
-    <header>
-      <p class="meta">
-        <time datetime={date.toISOString()}>{formatDate(date)}</time>
-        <span class="category">{category}</span>
-      </p>
-      <h1>{title}</h1>
-    </header>
+    <p class="meta">
+      <time class="u-num" datetime={date.toISOString()}>{formatDate(date)}</time>
+      <span class="category">{category}</span>
+    </p>
+    <h1>{title}</h1>
     <div class="body">
       <slot />
     </div>
-    <p class="back"><a href="/news">お知らせ一覧に戻る</a></p>
+    <p class="back"><a href="/news">お知らせ一覧へ</a></p>
   </article>
 </BaseLayout>
 
 <style>
+  article {
+    max-width: var(--measure);
+  }
+
   .meta {
     display: flex;
-    align-items: center;
-    gap: var(--space-md);
-    color: var(--color-text-muted);
-    font-size: 0.85rem;
+    align-items: baseline;
+    gap: var(--space-sm);
+    font-size: 0.8rem;
+    color: var(--sumi-soft);
   }
 
   .category {
-    padding: 0.1rem 0.6rem;
-    border: 1px solid var(--color-accent);
-    border-radius: 999px;
-    color: var(--color-accent-dark);
+    letter-spacing: 0.14em;
+    color: var(--ice-deep);
   }
 
   h1 {
-    font-size: 1.6rem;
-    margin-top: var(--space-sm);
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(1.4rem, 4vw, 1.9rem);
+    letter-spacing: 0.12em;
+    margin-top: var(--space-xs);
   }
 
   .body {
@@ -1108,38 +1654,49 @@ const formatDate = (value: Date) =>
   }
 
   .body :global(p + p) {
-    margin-top: var(--space-md);
+    margin-top: var(--space-sm);
   }
 
   .back {
     margin-top: var(--space-xl);
+  }
+
+  .back a {
+    font-size: 0.85rem;
+    letter-spacing: 0.12em;
+    color: var(--ice-deep);
+    text-decoration: none;
+    border-bottom: 1px solid var(--ice);
+    padding-bottom: 0.15em;
   }
 </style>
 ```
 
 - [ ] **Step 3: `src/pages/news/index.astro` を作成**
 
-下書きは本番ビルドでのみ除外する（開発中は確認できるようにする）。
+下書きは本番ビルドでのみ除外し、開発中は確認できるようにする。
 
 ```astro
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import SectionHeading from '../../components/SectionHeading.astro';
 import NewsList from '../../components/NewsList.astro';
 
-const entries = (await getCollection('news', ({ data }) => import.meta.env.PROD ? !data.draft : true))
-  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+const entries = (
+  await getCollection('news', ({ data }) => (import.meta.env.PROD ? !data.draft : true))
+).sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
 ---
 
-<BaseLayout title="お知らせ" description="営業日の変更や新メニューのお知らせです。">
-  <h1>お知らせ</h1>
+<BaseLayout title="お知らせ" description="出店情報の変更や新メニューのお知らせです。">
+  <SectionHeading label="News" title="お知らせ" />
   <NewsList entries={entries} />
 </BaseLayout>
 ```
 
 - [ ] **Step 4: `src/pages/news/[slug].astro` を作成**
 
-Astro 5以降、本文の描画は `entry.render()` ではなく `astro:content` の `render(entry)` を使う。
+Astro 5以降、本文描画は `entry.render()` ではなく `astro:content` の `render(entry)` を使う。
 
 ```astro
 ---
@@ -1148,7 +1705,9 @@ import type { GetStaticPaths } from 'astro';
 import NewsLayout from '../../layouts/NewsLayout.astro';
 
 export const getStaticPaths: GetStaticPaths = async () => {
-  const entries = await getCollection('news', ({ data }) => import.meta.env.PROD ? !data.draft : true);
+  const entries = await getCollection('news', ({ data }) =>
+    import.meta.env.PROD ? !data.draft : true
+  );
   return entries.map((entry) => ({
     params: { slug: entry.id },
     props: { entry },
@@ -1167,7 +1726,7 @@ const { Content } = await render(entry);
 - [ ] **Step 5: ビルドと型チェック**
 
 Run: `npm run build`
-Expected: 成功し、`dist/news/index.html` と `dist/news/summer-open/index.html` が生成される（日付プレフィックスが除去されたURLになっていること）
+Expected: 成功し、`dist/news/index.html` と `dist/news/open/index.html` が生成される（URLから日付プレフィックスが消えていること）
 
 Run: `npx astro check`
 Expected: `0 errors`
@@ -1175,7 +1734,7 @@ Expected: `0 errors`
 - [ ] **Step 6: 目視確認**
 
 Run: `npm run dev`
-`http://localhost:4321/news` で一覧に1件出ること、タイトルをクリックして `/news/summer-open` に遷移し本文が表示されること、「お知らせ一覧に戻る」が機能することを確認。確認後Ctrl+Cで停止。
+`http://localhost:4321/news` で一覧が出ること、タイトルから `/news/open` に遷移して本文が読めること、「お知らせ一覧へ」が機能することを確認。確認後Ctrl+Cで停止。
 
 - [ ] **Step 7: コミット**
 
@@ -1186,137 +1745,186 @@ git commit -m "feat: お知らせの一覧と詳細ページを追加"
 
 ---
 
-### Task 7: トップページ
+### Task 8: トップページとヒーロー
 
 **Files:**
-- Create: `src/components/Hero.astro`
 - Create: `src/assets/images/shop/hero-placeholder.svg`
-- Modify: `src/pages/index.astro`（Task 3の暫定内容を全面的に差し替え）
+- Create: `src/components/Hero.astro`
+- Modify: `src/pages/index.astro`（Task 3の暫定内容を全面差し替え）
 
 **Interfaces:**
-- Consumes: `MenuCard`（Task 5）、`NewsList`（Task 6）、`BusinessHours`（Task 3）、`shop`（Task 2）
-- Produces: `Hero` — props なし。`shop` の店名と説明文を読む
+- Consumes: `Hero`、`TodayVenue`（Task 5）、`MenuCard`（Task 6）、`NewsList`（Task 7）、`SectionHeading`（Task 3）
+- Produces: `Hero` — props なし。`shop` からタグラインを読む
 
 - [ ] **Step 1: ヒーロー用プレースホルダ画像を作成**
+
+かき氷は縦に高いので 3:4 の縦長にする。
 
 `src/assets/images/shop/hero-placeholder.svg`:
 
 ```svg
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900">
-  <rect width="1600" height="900" fill="#dcedf4" />
-  <text x="800" y="465" font-family="sans-serif" font-size="64" fill="#2f7d9c" text-anchor="middle">メイン写真準備中</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1200" width="900" height="1200">
+  <rect width="900" height="1200" fill="#eef7fb" />
+  <text x="450" y="610" font-family="sans-serif" font-size="42" fill="#1c6b85" text-anchor="middle" letter-spacing="8">メイン写真準備中</text>
 </svg>
 ```
 
 - [ ] **Step 2: `src/components/Hero.astro` を作成**
 
+全幅のグラデーションの上に縦長写真を中央配置し、左右に縦組みのコピーを重ねる。読み込み時に両方のコピーが下から立ち上がる。
+
 ```astro
 ---
 import { Image } from 'astro:assets';
-import { shop } from '../data/shop';
 import heroImage from '../assets/images/shop/hero-placeholder.svg';
 ---
 
 <section class="hero">
-  <Image src={heroImage} alt="" width={1600} height={900} loading="eager" />
-  <div class="text">
-    <h1>{shop.name}</h1>
-    <p>{shop.description}</p>
+  <p class="copy copy-left u-vertical">削りたてを、ひと山。</p>
+
+  <div class="visual">
+    <Image src={heroImage} alt="" width={900} height={1200} loading="eager" />
   </div>
+
+  <p class="copy copy-right u-vertical">白の上に、季節を。</p>
 </section>
 
 <style>
-  .hero :global(img) {
+  .hero {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-height: min(78vh, 720px);
+    padding: var(--space-lg) var(--space-sm);
+    overflow: hidden;
+    background:
+      radial-gradient(90% 70% at 78% 16%, rgba(90, 189, 221, 0.3), transparent 62%),
+      radial-gradient(80% 62% at 16% 74%, rgba(200, 236, 226, 0.5), transparent 64%),
+      linear-gradient(180deg, #ffffff 0%, var(--mist) 100%);
+  }
+
+  .visual {
+    width: min(46vw, 300px);
+  }
+
+  .visual :global(img) {
     width: 100%;
-    aspect-ratio: 16 / 9;
+    aspect-ratio: 3 / 4;
     object-fit: cover;
-    border-radius: 12px;
+    border-radius: 2px;
   }
 
-  .text {
-    margin-top: var(--space-lg);
-    text-align: center;
+  .copy {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--sumi);
+    font-size: clamp(0.95rem, 3.2vw, 1.35rem);
+    opacity: 0;
+    animation: rise 1.1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   }
 
-  h1 {
-    font-size: 1.8rem;
+  .copy-left {
+    left: max(var(--space-sm), 6vw);
+    animation-delay: 0.15s;
   }
 
-  .text p {
-    margin-top: var(--space-sm);
-    color: var(--color-text-muted);
+  .copy-right {
+    right: max(var(--space-sm), 6vw);
+    animation-delay: 0.35s;
+  }
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(calc(-50% + 1.5rem));
+    }
+    to {
+      opacity: 1;
+      transform: translateY(-50%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .copy {
+      opacity: 1;
+      animation: none;
+    }
   }
 </style>
 ```
 
-- [ ] **Step 3: `src/pages/index.astro` を全面的に差し替え**
+**注意:** `.copy` の `transform` はアニメーションと縦位置揃えの両方を担っている。`@keyframes` の `to` を消すと中央揃えが壊れる。
 
-看板メニューは `order` の小さい順に3件。
+- [ ] **Step 3: `src/pages/index.astro` を全面差し替え**
+
+`wide` を渡してヒーローを全幅にする。以降のセクションは自前で最大幅を持つ。
 
 ```astro
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Hero from '../components/Hero.astro';
+import TodayVenue from '../components/TodayVenue.astro';
+import SectionHeading from '../components/SectionHeading.astro';
 import MenuCard from '../components/MenuCard.astro';
 import NewsList from '../components/NewsList.astro';
-import BusinessHours from '../components/BusinessHours.astro';
 import { shop } from '../data/shop';
 
 const featuredMenu = (await getCollection('menu', ({ data }) => data.available))
   .sort((a, b) => a.data.order - b.data.order)
   .slice(0, 3);
 
-const news = (await getCollection('news', ({ data }) => import.meta.env.PROD ? !data.draft : true))
-  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+const news = (
+  await getCollection('news', ({ data }) => (import.meta.env.PROD ? !data.draft : true))
+).sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
 ---
 
-<BaseLayout title={shop.name}>
+<BaseLayout title={shop.name} wide>
   <Hero />
 
-  <section>
-    <h2>おすすめ</h2>
+  <TodayVenue />
+
+  <section class="section">
+    <SectionHeading label="Menu" title="今おすすめの一杯" />
     <div class="grid">
       {featuredMenu.map((entry) => <MenuCard entry={entry} />)}
     </div>
     <p class="more"><a href="/menu">メニューをすべて見る</a></p>
   </section>
 
-  <section>
-    <h2>お知らせ</h2>
+  <section class="section">
+    <SectionHeading label="News" title="お知らせ" />
     <NewsList entries={news} limit={3} />
     <p class="more"><a href="/news">お知らせをすべて見る</a></p>
-  </section>
-
-  <section>
-    <h2>営業時間</h2>
-    <BusinessHours />
-    <p class="more"><a href="/access">店舗情報・アクセス</a></p>
   </section>
 </BaseLayout>
 
 <style>
-  section {
-    margin-top: var(--space-xl);
-  }
-
-  h2 {
-    font-size: 1.3rem;
-    padding-bottom: var(--space-sm);
-    border-bottom: 2px solid var(--color-accent);
-    margin-bottom: var(--space-lg);
+  .section {
+    max-width: var(--max-width);
+    margin-inline: auto;
+    padding: var(--space-2xl) var(--space-md) 0;
   }
 
   .grid {
     display: grid;
-    gap: var(--space-lg);
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: var(--space-lg) var(--space-md);
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
   }
 
   .more {
     margin-top: var(--space-lg);
     text-align: right;
-    font-size: 0.9rem;
+  }
+
+  .more a {
+    font-size: 0.85rem;
+    letter-spacing: 0.12em;
+    color: var(--ice-deep);
+    text-decoration: none;
+    border-bottom: 1px solid var(--ice);
+    padding-bottom: 0.15em;
   }
 </style>
 ```
@@ -1332,132 +1940,44 @@ Expected: `0 errors`
 - [ ] **Step 5: 目視確認**
 
 Run: `npm run dev`
-`http://localhost:4321/` でヒーロー、おすすめ2件、お知らせ1件、営業時間が並ぶことを確認。確認後Ctrl+Cで停止。
+`http://localhost:4321/` を開き、以下を確認する。
+
+- ヒーローが画面幅いっぱいに広がり、左右のコピーが**縦組み**で写真を挟んでいる
+- 読み込み時に左→右の順でコピーが下から立ち上がる
+- ヒーロー直下に「本日は ◯◯ にいます」が出る
+- おすすめ3件とお知らせが並ぶ
+- 375px幅で縦組みのコピーが写真に重ならず、はみ出さない
+- OSの「視差効果を減らす」を有効にするとアニメーションが起きない
+
+確認後Ctrl+Cで停止。
 
 - [ ] **Step 6: コミット**
 
 ```bash
 git add -A
-git commit -m "feat: トップページを追加"
+git commit -m "feat: トップページとヒーローを追加"
 ```
 
 ---
 
-### Task 8: 店舗情報・アクセスページとお問い合わせページ
-
-2ページとも `shop.ts` を読んで整形するだけの静的ページで、テスト観点も同じため1タスクにまとめる。
+### Task 9: お問い合わせ、404、静的アセット、仕上げ
 
 **Files:**
-- Create: `src/pages/access.astro`
 - Create: `src/pages/contact.astro`
+- Create: `src/pages/404.astro`
+- Create: `public/favicon.svg`
+- Create: `public/ogp.svg`
+- Create: `public/robots.txt`
+- Create: `README.md`
 
-**Interfaces:**
-- Consumes: `shop`（Task 2）、`BusinessHours`（Task 3）、`SnsLinks`（Task 3）、`BaseLayout`（Task 3）
+- [ ] **Step 1: `src/pages/contact.astro` を作成**
 
-- [ ] **Step 1: `src/pages/access.astro` を作成**
-
-地図はGoogleマップのiframe埋め込み。`loading="lazy"` を付けて初期表示を軽くする。
-
-```astro
----
-import BaseLayout from '../layouts/BaseLayout.astro';
-import BusinessHours from '../components/BusinessHours.astro';
-import { shop } from '../data/shop';
----
-
-<BaseLayout title="店舗情報・アクセス" description={`${shop.name}の住所、営業時間、アクセス方法のご案内です。`}>
-  <h1>店舗情報・アクセス</h1>
-
-  <dl class="info">
-    <dt>店名</dt>
-    <dd>{shop.name}</dd>
-
-    <dt>住所</dt>
-    <dd>
-      {shop.address}
-      <a href={shop.mapUrl} target="_blank" rel="noopener noreferrer">地図を開く</a>
-    </dd>
-
-    <dt>電話番号</dt>
-    <dd><a href={`tel:${shop.tel.replace(/-/g, '')}`}>{shop.tel}</a></dd>
-
-    <dt>営業時間</dt>
-    <dd><BusinessHours /></dd>
-
-    <dt>駐車場</dt>
-    <dd>{shop.parking}</dd>
-
-    <dt>支払い方法</dt>
-    <dd>{shop.payments.join(' / ')}</dd>
-  </dl>
-
-  <section class="map">
-    <h2>地図</h2>
-    <iframe
-      src={shop.mapEmbedUrl}
-      title={`${shop.name}の地図`}
-      loading="lazy"
-      referrerpolicy="no-referrer-when-downgrade"
-      allowfullscreen></iframe>
-  </section>
-</BaseLayout>
-
-<style>
-  .info {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: var(--space-sm);
-    margin-top: var(--space-lg);
-  }
-
-  .info dt {
-    font-weight: 700;
-    padding-top: var(--space-md);
-    border-top: 1px solid var(--color-border);
-  }
-
-  .info dd {
-    margin: 0 0 var(--space-md);
-  }
-
-  @media (min-width: 640px) {
-    .info {
-      grid-template-columns: 8rem 1fr;
-      column-gap: var(--space-lg);
-    }
-
-    .info dd {
-      padding-top: var(--space-md);
-      border-top: 1px solid var(--color-border);
-      margin-bottom: 0;
-    }
-  }
-
-  .map {
-    margin-top: var(--space-xl);
-  }
-
-  .map h2 {
-    font-size: 1.3rem;
-    margin-bottom: var(--space-md);
-  }
-
-  iframe {
-    width: 100%;
-    height: 360px;
-    border: 0;
-    border-radius: 12px;
-  }
-</style>
-```
-
-- [ ] **Step 2: `src/pages/contact.astro` を作成**
-
-設計書の通りフォームのバックエンドは作らない。メールとSNSへの導線のみ。
+設計書の通りフォームのバックエンドは作らない。SNSが主導線。
 
 ```astro
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import SectionHeading from '../components/SectionHeading.astro';
 import SnsLinks from '../components/SnsLinks.astro';
 import { shop } from '../data/shop';
 
@@ -1465,83 +1985,79 @@ const mailSubject = encodeURIComponent('お問い合わせ');
 ---
 
 <BaseLayout title="お問い合わせ" description="ご質問、イベント出店のご依頼はこちらから。">
-  <h1>お問い合わせ</h1>
+  <SectionHeading label="Contact" title="お問い合わせ" />
 
-  <p>
-    メニューについてのご質問、イベント出店や販売のご依頼は、メールまたはSNSのメッセージでご連絡ください。
-    営業時間中は店舗対応のため、返信までお時間をいただくことがあります。
+  <p class="intro">
+    メニューのご質問、イベントへの出店のご依頼をお受けしています。営業中は返信までお時間をいただきます。
   </p>
 
-  <section>
-    <h2>メール</h2>
-    <p><a href={`mailto:${shop.email}?subject=${mailSubject}`}>{shop.email}</a></p>
-  </section>
+  <div class="channels">
+    <section>
+      <p class="u-label">Instagram</p>
+      <p class="body">DMがいちばん早くお返事できます。</p>
+      <SnsLinks />
+    </section>
 
-  <section>
-    <h2>SNS</h2>
-    <SnsLinks />
-  </section>
+    <section>
+      <p class="u-label">Mail</p>
+      <p class="body">
+        <a href={`mailto:${shop.email}?subject=${mailSubject}`}>{shop.email}</a>
+      </p>
+    </section>
+  </div>
 
-  <section>
-    <h2>お電話</h2>
-    <p><a href={`tel:${shop.tel.replace(/-/g, '')}`}>{shop.tel}</a></p>
-  </section>
-
-  <section>
-    <h2>イベント出店のご依頼</h2>
-    <p>
-      出店日時、場所、想定人数、電源と給水の有無をあわせてお知らせいただけると、
-      お返事がスムーズです。
+  <section class="event">
+    <p class="u-label">Event</p>
+    <h3>出店のご依頼</h3>
+    <p class="body">
+      日時、場所、想定人数、電源と給水の有無をあわせてお知らせいただけると、お返事がスムーズです。
     </p>
   </section>
 </BaseLayout>
 
 <style>
-  section {
+  .intro {
+    max-width: var(--measure);
+    color: var(--sumi-soft);
+  }
+
+  .channels {
+    display: grid;
+    gap: var(--space-lg);
     margin-top: var(--space-xl);
   }
 
-  h2 {
+  .body {
+    margin-top: var(--space-2xs);
+    font-size: 0.9rem;
+  }
+
+  .body a {
+    color: var(--ice-deep);
+  }
+
+  .event {
+    margin-top: var(--space-xl);
+    max-width: var(--measure);
+  }
+
+  .event h3 {
+    font-family: var(--font-display);
+    font-weight: 400;
     font-size: 1.2rem;
-    padding-bottom: var(--space-sm);
-    border-bottom: 2px solid var(--color-accent);
-    margin-bottom: var(--space-md);
+    letter-spacing: 0.14em;
+    margin-top: var(--space-2xs);
+  }
+
+  @media (min-width: 720px) {
+    .channels {
+      grid-template-columns: 1fr 1fr;
+    }
   }
 </style>
 ```
 
-- [ ] **Step 3: ビルドと型チェック**
-
-Run: `npm run build`
-Expected: 成功
-
-Run: `npx astro check`
-Expected: `0 errors`
-
-- [ ] **Step 4: 目視確認**
-
-Run: `npm run dev`
-`http://localhost:4321/access` で地図が表示されること、`http://localhost:4321/contact` のメールリンクが `mailto:` で開くことを確認。375px幅で定義リストが1カラムに落ちることも確認。確認後Ctrl+Cで停止。
-
-- [ ] **Step 5: コミット**
-
-```bash
-git add -A
-git commit -m "feat: 店舗情報とお問い合わせページを追加"
-```
-
----
-
-### Task 9: 404ページ、静的アセット、仕上げ
-
-**Files:**
-- Create: `src/pages/404.astro`
-- Create: `public/favicon.svg`
-- Create: `public/ogp.jpg`（プレースホルダとしてSVGではなく後述の方法で用意）
-- Create: `public/robots.txt`
-- Create: `README.md`
-
-- [ ] **Step 1: `src/pages/404.astro` を作成**
+- [ ] **Step 2: `src/pages/404.astro` を作成**
 
 ```astro
 ---
@@ -1549,123 +2065,153 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
 <BaseLayout title="ページが見つかりません">
+  <p class="u-label">404</p>
   <h1>ページが見つかりません</h1>
-  <p>お探しのページは移動または削除された可能性があります。</p>
-  <p><a href="/">トップページに戻る</a></p>
+  <p class="body">お探しのページは移動または削除された可能性があります。</p>
+  <p class="back"><a href="/">トップへ</a></p>
 </BaseLayout>
+
+<style>
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(1.3rem, 4vw, 1.7rem);
+    letter-spacing: 0.14em;
+    margin-top: var(--space-2xs);
+  }
+
+  .body {
+    margin-top: var(--space-sm);
+    color: var(--sumi-soft);
+  }
+
+  .back {
+    margin-top: var(--space-lg);
+  }
+
+  .back a {
+    font-size: 0.85rem;
+    letter-spacing: 0.12em;
+    color: var(--ice-deep);
+    text-decoration: none;
+    border-bottom: 1px solid var(--ice);
+    padding-bottom: 0.15em;
+  }
+</style>
 ```
 
-- [ ] **Step 2: `public/favicon.svg` を作成**
+- [ ] **Step 3: `public/favicon.svg` を作成**
 
-かき氷を模した簡易アイコン。
+ロゴの雲の輪郭を単純化したもの。ブランドカラー `#5abddd` を使う。
 
 ```svg
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
-  <path d="M6 14 L16 3 L26 14 Z" fill="#bfe6f2" />
-  <path d="M8 15 h16 l-6 13 h-4 Z" fill="#f5f2ea" stroke="#d8d2c6" stroke-width="0.8" />
-  <circle cx="16" cy="10" r="2.4" fill="#4aa3c7" />
+  <rect width="32" height="32" fill="#5abddd" />
+  <path d="M10.5 15.5a3.2 3.2 0 0 1 .6-6.2 4.3 4.3 0 0 1 8.2-1 3.4 3.4 0 0 1 2.2 7.2z" fill="#ffffff" />
+  <path d="M11 17h10l-4.2 8.5h-1.6z" fill="#ffffff" />
 </svg>
 ```
 
-- [ ] **Step 3: `public/ogp.jpg` を用意**
+- [ ] **Step 4: `public/ogp.svg` を作成**
 
-現時点で実写のOGP画像はない。**JPEGをテキストで捏造することはできない**ため、この手順ではプレースホルダを配置せず、`public/ogp.png` としてSVGから変換した画像を作る代わりに、以下で対応する。
-
-`BaseLayout.astro` のOGP既定値を `/ogp.jpg` から `/ogp.svg` に変更し、`public/ogp.svg` を作成する。
-
-`public/ogp.svg`:
+**JPEGはテキストで生成できない**ため、現時点ではSVGの仮画像を置く。差し替えTODOはREADMEに記載する。
 
 ```svg
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
-  <rect width="1200" height="630" fill="#dcedf4" />
-  <text x="600" y="330" font-family="sans-serif" font-size="72" fill="#2f7d9c" text-anchor="middle">かき氷店（仮）</text>
+  <rect width="1200" height="630" fill="#5abddd" />
+  <text x="600" y="300" font-family="sans-serif" font-size="76" fill="#ffffff" text-anchor="middle" letter-spacing="10">White Project</text>
+  <text x="600" y="380" font-family="sans-serif" font-size="30" fill="#e4f2f8" text-anchor="middle" letter-spacing="14">かき氷専門店</text>
 </svg>
 ```
 
-`src/layouts/BaseLayout.astro` の該当行を変更:
-
-```diff
--const { title, description = shop.description, ogImage = '/ogp.jpg' } = Astro.props;
-+// TODO: 店舗写真が用意でき次第、1200x630のJPEG/PNGに差し替える（SVGはOGPでサムネイル表示されないSNSがある）
-+const { title, description = shop.description, ogImage = '/ogp.svg' } = Astro.props;
-```
-
-- [ ] **Step 4: `public/robots.txt` を作成**
+- [ ] **Step 5: `public/robots.txt` を作成**
 
 ```
 User-agent: *
 Allow: /
 ```
 
-- [ ] **Step 5: `README.md` を作成**
-
-更新手順は店主から連絡を受けた自分が読むもの。具体的なコマンドと手順を書く。
+- [ ] **Step 6: `README.md` を作成**
 
 ````markdown
-# かき氷店HP
+# White Project HP
 
-Astroで作った店舗紹介サイト。
+かき氷専門店 White Project の紹介サイト。Astroの静的サイト。
 
 ## 開発
 
 ```bash
 npm install
 npm run dev      # http://localhost:4321
-npm run build    # dist/ に静的ファイルを出力
+npm run build    # dist/ に出力
 npm run check    # 型チェック
 ```
 
+## デザインのルール
+
+崩さないための約束。詳細は `docs/superpowers/specs/2026-07-28-kakigori-site-design.md` を読むこと。
+
+- 色は `src/styles/global.css` の6変数のみ。**彩度のある色はかき氷の写真からしか出さない**
+- `--ice`（#5abddd）は装飾専用。文字色には `--ice-deep` を使う（コントラスト比の都合）
+- 枠線付きの角丸カードを作らない。区切りは余白で行う
+- 縦組みはヒーローのコピーとメニューの商品名だけ
+- 数字・時刻・価格は `.u-num`（Jost）で組む
+
+## 出店場所・営業時間を変える
+
+`src/data/shop.ts` の `venues` だけを編集する。トップ、出店情報、フッター、構造化データがすべてここを参照している。
+
+`days` は `0=日曜, 1=月曜 … 6=土曜`。トップの「本日は◯◯にいます」もこの配列で判定している。
+
 ## メニューを追加する
 
-1. `src/assets/images/menu/` に写真を置く（スマホ撮影のまま可。ビルド時に自動圧縮される）
+1. `src/assets/images/menu/` に写真を置く（**縦長で撮る**。3:4にトリミングされる。スマホ撮影のままでよく、ビルド時に自動圧縮される）
 2. `src/content/menu/` に `<商品名のローマ字>.md` を作る
 
 ```markdown
 ---
-name: いちごミルク
-price: 1000
+name: いちご
+price: 1400
 description: 説明文
 image: ../../assets/images/menu/ichigo.jpg
 season: winter   # all | spring | summer | autumn | winter
 available: true
-order: 30        # 小さいほど上に出る
+order: 40        # 小さいほど上に出る
 ---
 
 本文（任意）
 ```
 
-3. `npm run build` が通れば反映OK。項目の書き忘れや型違いはここで検出される
+3. `npm run build` が通れば反映OK。書き忘れや型違いはここで落ちる
 
-**提供を一時停止したいとき:** ファイルを消さず `available: false` にする。
+**一時的に出せないとき:** ファイルを消さず `available: false` にする。
 
 ## お知らせを投稿する
 
-`src/content/news/` に `YYYY-MM-DD-<slug>.md` を作る。URLは日付を除いた `/news/<slug>` になる。
+`src/content/news/` に `YYYY-MM-DD-<slug>.md` を作る。URLは日付を除いた `/news/<slug>`。
 
 ```markdown
 ---
 title: 臨時休業のお知らせ
 date: 2026-08-12
-category: 休業   # 休業 | 新メニュー | イベント | その他
-draft: false     # true にすると本番ビルドから除外される
+category: 休業   # 休業 | 新メニュー | 出店情報 | その他
+draft: false     # true で本番ビルドから除外
 ---
 
 本文
 ```
 
-## 店舗情報を変更する
+## 公開前にやること
 
-住所・電話番号・営業時間・SNSは `src/data/shop.ts` の1ファイルだけを編集する。
-トップ、アクセス、フッター、構造化データの全てがここを参照している。
-
-## 未対応事項
-
-- `astro.config.mjs` の `site` が `https://example.com` のまま。独自ドメイン取得後に差し替える
-- `src/data/shop.ts` の店舗情報がプレースホルダ
-- `public/ogp.svg` が仮画像。SNSシェア時のサムネイル用に1200x630のJPEGへ差し替える
+- [ ] `src/data/shop.ts` の各会場の**正確な住所**を店主に確認して差し替える（現在「住所確認中」）
+- [ ] メニューの**価格**を確認して差し替える（現在は仮の値）
+- [ ] 問い合わせ用の**メールアドレス**を確認して差し替える
+- [ ] `astro.config.mjs` の `site` を実ドメインに差し替える（現在 `https://example.com`）
+- [ ] `public/ogp.svg` を 1200x630 のJPEGに差し替える（SVGをOGPサムネイルとして表示しないSNSがある）
+- [ ] `src/assets/images/` のプレースホルダSVGを実写に差し替える
 ````
 
-- [ ] **Step 6: ビルドと型チェック**
+- [ ] **Step 7: ビルドと型チェック**
 
 Run: `npm run build`
 Expected: 成功
@@ -1673,45 +2219,43 @@ Expected: 成功
 Run: `npx astro check`
 Expected: `0 errors`
 
-- [ ] **Step 7: 全ページの最終確認**
+- [ ] **Step 8: 全ページの最終確認**
 
 Run: `npm run preview`
-以下のURLを順に開き、ヘッダー・フッターが全ページに出ること、ナビの現在地表示が正しいこと、404が表示されることを確認する。
+以下を順に開き、ヘッダー・フッターが全ページに出ること、ナビの現在地表示が正しいこと、404が出ることを確認する。
 
 - `http://localhost:4321/`
 - `http://localhost:4321/menu`
-- `http://localhost:4321/access`
+- `http://localhost:4321/venues`
 - `http://localhost:4321/news`
-- `http://localhost:4321/news/summer-open`
+- `http://localhost:4321/news/open`
 - `http://localhost:4321/contact`
 - `http://localhost:4321/存在しないページ`
 
-確認後Ctrl+Cで停止。
+- [ ] **Step 9: 単一情報源が機能しているか確認**
 
-- [ ] **Step 8: 単一情報源が機能しているか確認**
-
-`src/data/shop.ts` の `businessHours` の平日の `close` を一時的に `'17:00'` に変更する。
+`src/data/shop.ts` の `akawani` の `close` を一時的に `'20:30'` に変更する。
 
 Run: `npm run build`
-`dist/index.html`、`dist/access/index.html`、`dist/menu/index.html`（フッター）の3ファイルすべてで `17:00` に変わっていることを確認する。
+`dist/index.html`（本日の出店）、`dist/venues/index.html`、`dist/menu/index.html`（フッター）の3ファイルすべてで `20:30` になっていることを確認する。
 
-Run: `npx serve dist` は不要。ファイル内容の確認でよい。
+確認後 `'21:30'` に戻し、`npm run build` を再実行する。
 
-確認後 `'18:00'` に戻し、`npm run build` を再実行する。
-
-- [ ] **Step 9: コミット**
+- [ ] **Step 10: コミット**
 
 ```bash
 git add -A
-git commit -m "feat: 404ページと静的アセット、READMEを追加"
+git commit -m "feat: お問い合わせと404、静的アセット、READMEを追加"
 ```
 
 ---
 
 ## Self-Review 結果
 
-**仕様カバレッジ:** 設計書の全セクションを確認した。ページ構成7URL（Task 5,6,7,8,9）、メニュースキーマ7項目（Task 4）、お知らせスキーマ4項目（Task 4）、shop.ts単一情報源（Task 2、検証はTask 9 Step 8）、コンポーネント設計6種（Task 3,5,6,7）、画像の使い分け（Task 4,7）、ビルド時検証（Task 4 Step 5）、スコープ外項目（いずれも未実装のまま）。成功基準4項目はTask 9 Step 7・8で検証される。
+**仕様カバレッジ:** 設計書の各節を確認した。ページ構成7URL（Task 5〜9）、デザイン方針のカラー6値とタイポグラフィ3書体（Task 1）、縦組み2箇所限定（Task 8ヒーロー / Task 6メニュー）、枠線禁止（全タスクのCSSで角丸カードを使わない構成にした）、シグネチャー要素「本日の出店」とJS無効フォールバック（Task 5、検証はTask 5 Step 5）、モーションとreduced-motion（Task 1とTask 8）、会場配列のデータ設計（Task 2）、メニュー・お知らせのスキーマ（Task 4）、単一情報源の検証（Task 9 Step 9）。成功基準7項目はTask 5 Step 5、Task 8 Step 5、Task 9 Step 8・9で検証される。
 
-**未カバーだったため追加した項目:** 設計書のコンポーネント一覧にある `Hero` はTask 7で、`SnsLinks` はTask 3で実装するよう配置した。
+**型の一貫性:** `Venue` 型は Task 2 で定義し、Task 5 の `VenueCard` が `import type { Venue }` で受ける。`days` の曜日番号の意味（0=日曜）は Task 2 のコメント、Task 5 のスクリプト、READMEの3箇所で一致させた。`shop.venues` の参照名は全タスクで統一。
 
-**既知の仕様からの逸脱:** 設計書はOGP画像を `public/ogp.jpg` としているが、実写素材がないためTask 9で `ogp.svg` の仮画像に変更し、差し替えTODOをREADMEに記載する。
+**既知の仕様からの逸脱:** 設計書はOGP画像を `ogp.jpg` としているが、実写素材がないため Task 9 で `ogp.svg` の仮画像とし、差し替えTODOをREADMEに残す。
+
+**プレースホルダの扱い:** 住所・価格・メールアドレスは店主未確認のため実装上のプレースホルダとして残す。これは計画の欠落ではなく、READMEの「公開前にやること」で追跡する。
