@@ -1,0 +1,83 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+type Props = {
+  entries: CollectionEntry<'news'>[];
+  limit?: number;
+};
+
+const { entries, limit } = Astro.props;
+const items = limit ? entries.slice(0, limit) : entries;
+
+const formatDate = (date: Date) =>
+  date.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
+---
+
+{
+  items.length === 0 ? (
+    <p class="empty">お知らせはまだありません。</p>
+  ) : (
+    <ul class="list">
+      {items.map((entry) => (
+        <li>
+          <a href={`/news/${entry.id}`}>
+            <time class="u-num" datetime={entry.data.date.toISOString()}>
+              {formatDate(entry.data.date)}
+            </time>
+            <span class="category">{entry.data.category}</span>
+            <span class="title">{entry.data.title}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+<style>
+  .list a {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-2xs) var(--space-sm);
+    padding: var(--space-md) 0;
+    text-decoration: none;
+    transition: opacity 0.3s ease;
+  }
+
+  .list a:hover {
+    opacity: 0.6;
+  }
+
+  time {
+    font-size: 0.8rem;
+    color: var(--sumi-soft);
+  }
+
+  .category {
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    color: var(--ice-deep);
+    justify-self: start;
+  }
+
+  .title {
+    grid-column: 1 / -1;
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    letter-spacing: 0.1em;
+  }
+
+  .empty {
+    color: var(--sumi-soft);
+  }
+
+  @media (min-width: 720px) {
+    .list a {
+      grid-template-columns: 8rem 5rem 1fr;
+      align-items: baseline;
+    }
+
+    .title {
+      grid-column: 3;
+    }
+  }
+</style>

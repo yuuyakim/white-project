@@ -1,0 +1,76 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import type { CollectionEntry } from 'astro:content';
+
+type Props = {
+  entry: CollectionEntry<'news'>;
+};
+
+const { entry } = Astro.props;
+const { title, date, category } = entry.data;
+
+const formatDate = (value: Date) =>
+  value.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
+---
+
+<BaseLayout title={title} description={`${formatDate(date)}のお知らせ`}>
+  <article>
+    <p class="meta">
+      <time class="u-num" datetime={date.toISOString()}>{formatDate(date)}</time>
+      <span class="category">{category}</span>
+    </p>
+    <h1>{title}</h1>
+    <div class="body">
+      <slot />
+    </div>
+    <p class="back"><a href="/news">お知らせ一覧へ</a></p>
+  </article>
+</BaseLayout>
+
+<style>
+  article {
+    max-width: var(--measure);
+  }
+
+  .meta {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-sm);
+    font-size: 0.8rem;
+    color: var(--sumi-soft);
+  }
+
+  .category {
+    letter-spacing: 0.14em;
+    color: var(--ice-deep);
+  }
+
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(1.4rem, 4vw, 1.9rem);
+    letter-spacing: 0.12em;
+    margin-top: var(--space-xs);
+  }
+
+  .body {
+    margin-top: var(--space-lg);
+  }
+
+  .body :global(p + p) {
+    margin-top: var(--space-sm);
+  }
+
+  .back {
+    margin-top: var(--space-xl);
+  }
+
+  .back a {
+    font-size: 0.85rem;
+    letter-spacing: 0.12em;
+    color: var(--ice-deep);
+    text-decoration: none;
+    border-bottom: 1px solid var(--ice);
+    padding-bottom: 0.15em;
+  }
+</style>
