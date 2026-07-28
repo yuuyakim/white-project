@@ -1,0 +1,50 @@
+---
+import { shop } from '../data/shop';
+
+const links = [
+  { label: 'Instagram', url: shop.sns.instagram },
+  { label: 'Threads', url: shop.sns.threads },
+].filter((link) => Boolean(link.url));
+---
+
+<ul class="sns">
+  {
+    links.map((link) => (
+      <li>
+        <a href={link.url} target="_blank" rel="noopener noreferrer">
+          {link.label}
+          <span aria-hidden="true">↗</span>
+        </a>
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .sns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-md);
+  }
+
+  a {
+    font-family: var(--font-latin);
+    font-weight: 300;
+    font-size: 0.85rem;
+    letter-spacing: 0.16em;
+    text-decoration: none;
+    color: var(--ice-deep);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+  }
+
+  a span {
+    font-size: 0.7em;
+    transition: transform 0.3s ease;
+  }
+
+  a:hover span {
+    transform: translate(2px, -2px);
+  }
+</style>
