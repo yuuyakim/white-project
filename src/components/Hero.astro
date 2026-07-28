@@ -4,13 +4,15 @@ import heroImage from '../assets/images/shop/hero-placeholder.svg';
 ---
 
 <section class="hero">
-  <p class="copy copy-left u-vertical">削りたてを、ひと山。</p>
+  <div class="hero-inner">
+    <p class="copy copy-left u-vertical">削りたてを、ひと山。</p>
 
-  <div class="visual">
-    <Image src={heroImage} alt="" width={900} height={1200} loading="eager" />
+    <div class="visual">
+      <Image src={heroImage} alt="" width={900} height={1200} loading="eager" />
+    </div>
+
+    <p class="copy copy-right u-vertical">白の上に、季節を。</p>
   </div>
-
-  <p class="copy copy-right u-vertical">白の上に、季節を。</p>
 </section>
 
 <style>
@@ -25,6 +27,14 @@ import heroImage from '../assets/images/shop/hero-placeholder.svg';
       radial-gradient(90% 70% at 78% 16%, rgba(90, 189, 221, 0.3), transparent 62%),
       radial-gradient(80% 62% at 16% 74%, rgba(200, 236, 226, 0.5), transparent 64%),
       linear-gradient(180deg, #ffffff 0%, var(--mist) 100%);
+  }
+
+  .hero-inner {
+    position: relative;
+    width: min(100%, 720px);
+    margin-inline: auto;
+    display: grid;
+    place-items: center;
   }
 
   .visual {
@@ -49,12 +59,12 @@ import heroImage from '../assets/images/shop/hero-placeholder.svg';
   }
 
   .copy-left {
-    left: max(var(--space-sm), 6vw);
+    left: 0;
     animation-delay: 0.15s;
   }
 
   .copy-right {
-    right: max(var(--space-sm), 6vw);
+    right: 0;
     animation-delay: 0.35s;
   }
 

@@ -2,14 +2,16 @@
 type Props = {
   label: string;
   title: string;
+  /** ページの主見出しとして使うときは 'h1' を渡す。既定はセクション見出しの 'h2' */
+  as?: 'h1' | 'h2';
 };
 
-const { label, title } = Astro.props;
+const { label, title, as: Tag = 'h2' }: Props = Astro.props;
 ---
 
 <div class="heading">
   <p class="u-label">{label}</p>
-  <h2>{title}</h2>
+  <Tag>{title}</Tag>
 </div>
 
 <style>
@@ -17,6 +19,7 @@ const { label, title } = Astro.props;
     margin-bottom: var(--space-lg);
   }
 
+  h1,
   h2 {
     font-family: var(--font-display);
     font-weight: 400;
