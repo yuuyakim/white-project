@@ -10,7 +10,7 @@
   /* 書体 */
   --font-display: "Shippori Mincho", "Yu Mincho", "YuMincho", serif;
   --font-body: "Zen Kaku Gothic New", "Hiragino Sans", "Noto Sans JP", sans-serif;
-  --font-latin: "Jost", "Helvetica Neue", system-ui, sans-serif;
+  --font-latin: "Jost", "Zen Kaku Gothic New", "Hiragino Sans", "Noto Sans JP", sans-serif;
 
   /* 余白 — 枠線ではなくこれで区切る */
   --space-2xs: 0.25rem;

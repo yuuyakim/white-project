@@ -85,8 +85,9 @@ Cloudflare側の設定:
 ## 公開前にやること
 
 - [ ] `src/data/shop.ts` の各会場の**正確な住所**を店主に確認して差し替える（現在「住所確認中」）
+- [ ] `src/data/shop.ts` の**支払い方法**を店主に確認して差し替える（現在「確認中」表示）
 - [ ] メニューの**価格**を確認して差し替える（現在は仮の値）
 - [ ] 問い合わせ用の**メールアドレス**を確認して差し替える
 - [ ] `public/ogp.svg` を 1200x630 のJPEGに差し替える（SVGをOGPサムネイルとして表示しないSNSがある）
-- [ ] `src/assets/images/` のプレースホルダSVGを実写に差し替える
+- [ ] `src/assets/images/` のプレースホルダSVGを実写に差し替える。差し替えたら `Hero.astro` の `alt=""` にも実際の写真を説明するalt textを入れる
 - [ ] 独自ドメインを取得したら `astro.config.mjs` の `site` を差し替える（現在は `https://white-project.pages.dev`）

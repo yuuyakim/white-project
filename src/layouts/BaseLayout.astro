@@ -10,9 +10,20 @@ type Props = {
   ogImage?: string;
   /** ヒーローなど全幅要素を置くページで true にする */
   wide?: boolean;
+  /** IceCreamShopの構造化データを出すページでのみ true にする（トップページのみ） */
+  structuredData?: boolean;
+  /** 検索エンジンにインデックスさせないページで true にする（404など） */
+  noindex?: boolean;
 };
 
-const { title, description = shop.description, ogImage = '/ogp.svg', wide = false } = Astro.props;
+const {
+  title,
+  description = shop.description,
+  ogImage = '/ogp.svg',
+  wide = false,
+  structuredData = false,
+  noindex = false,
+} = Astro.props;
 
 const pageTitle = title === shop.name ? `${shop.nameJa}` : `${title} | ${shop.name}`;
 const canonical = new URL(Astro.url.pathname, Astro.site);
@@ -37,11 +48,12 @@ const jsonLd = {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="canonical" href={canonical.href} />
+    {noindex && <meta name="robots" content="noindex" />}
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400&family=Shippori+Mincho&family=Zen+Kaku+Gothic+New:wght@300;400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400&family=Shippori+Mincho:wght@400;500&family=Zen+Kaku+Gothic+New:wght@300;400;500&display=swap"
       rel="stylesheet"
     />
 
@@ -54,7 +66,7 @@ const jsonLd = {
     <meta property="og:image" content={ogImageUrl.href} />
     <meta property="og:site_name" content={shop.nameJa} />
     <meta name="twitter:card" content="summary_large_image" />
-    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline></script>
+    {structuredData && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline></script>}
   </head>
   <body>
     <Header />
