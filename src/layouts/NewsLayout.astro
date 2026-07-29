@@ -11,7 +11,7 @@ const { entry } = Astro.props;
 const { title, date, category } = entry.data;
 ---
 
-<BaseLayout title={title} description={`${formatDate(date)}のお知らせ`}>
+<BaseLayout title={title} description={`${formatDate(date)}のお知らせ`} ogType="article">
   <article>
     <p class="meta">
       <time class="u-num" datetime={date.toISOString()}>{formatDate(date)}</time>

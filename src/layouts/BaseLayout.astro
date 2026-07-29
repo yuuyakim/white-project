@@ -14,15 +14,18 @@ type Props = {
   structuredData?: boolean;
   /** 検索エンジンにインデックスさせないページで true にする（404など） */
   noindex?: boolean;
+  /** お知らせ記事など、記事として扱うページで 'article' にする */
+  ogType?: 'website' | 'article';
 };
 
 const {
   title,
   description = shop.description,
-  ogImage = '/ogp.svg',
+  ogImage = '/ogp.png',
   wide = false,
   structuredData = false,
   noindex = false,
+  ogType = 'website',
 } = Astro.props;
 
 const pageTitle = title === shop.name ? `${shop.nameJa}` : `${title} | ${shop.name}`;
@@ -64,13 +67,18 @@ const jsonLd = {
 
     <title>{pageTitle}</title>
     <meta name="description" content={description} />
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={ogType} />
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical.href} />
     <meta property="og:image" content={ogImageUrl.href} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={`${shop.nameJa}のロゴ`} />
     <meta property="og:site_name" content={shop.nameJa} />
+    <meta property="og:locale" content="ja_JP" />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content={ogImageUrl.href} />
     {structuredData && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline></script>}
   </head>
   <body>
