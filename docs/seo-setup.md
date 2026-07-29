@@ -42,8 +42,8 @@ https://white-project.yuuyakim.com/sitemap-index.xml
 ## 3. 構造化データを検証する
 
 デプロイ後、以下の各URLを https://search.google.com/test/rich-results に通す。
-**エラー0 を確認する。** 警告（推奨プロパティの欠落）は、値が未確定なもの
-であれば許容してよい。
+**`IceCreamShop` の `address` 欠落エラー（下記参照）以外はエラー0 を確認する。**
+警告（推奨プロパティの欠落）は、値が未確定なものであれば許容してよい。
 
 | URL | 出るべきスキーマ |
 |---|---|
@@ -52,12 +52,22 @@ https://white-project.yuuyakim.com/sitemap-index.xml
 | `/menu` | BreadcrumbList |
 | `/news/open` | BlogPosting, BreadcrumbList |
 
+**`IceCreamShop`（`/` と `/venues`）で `address` の欠落エラーが出るのは想定内。**
+White Projectは固定の店舗を持たない間借り営業のため、`address` はあえて
+トップレベルに置かず、会場ごとの情報を `location` 配下の `Place` に載せる設計にしている
+（詳細は spec の間借りモデリングの節を参照）。Google側は `LocalBusiness` 系スキーマで
+`address` を必須プロパティとして扱うため、Rich Results Testはこの欠落を
+エラーとして報告してくると見込んでいる（実機では未確認）。**これは不具合ではなく
+設計通りの結果として確認してほしい。** `address` 以外の項目でエラーが出た場合や、
+`location` 配下の `Place`自体にエラーが出る場合は要調査。
+
 ## 4. SNSシェアのカード表示を確認する
 
 **実際に貼って確認する。** キャッシュが効くため、修正後は各デバッガで再取得する。
 
 - LINE: トークで自分宛にURLを送る
-- X: https://cards-dev.twitter.com/validator
+- X: 投稿の下書き画面（ポスト作成画面）にURLを貼り付け、プレビューでカードが出るか確認する
+  （旧Card Validator `cards-dev.twitter.com/validator` は廃止されログイン画面にリダイレクトされる）
 - Facebook: https://developers.facebook.com/tools/debug/
 
 画像が出ない場合、まず `https://white-project.yuuyakim.com/ogp.png` が
