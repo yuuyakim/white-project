@@ -20,5 +20,5 @@ export const excerpt = (body: string | undefined, max = 120): string | undefined
 
   const head = text.slice(0, max);
   const cut = Math.max(head.lastIndexOf('。'), head.lastIndexOf('、'));
-  return cut > 0 ? head.slice(0, cut + 1) : `${head}…`;
+  return cut > 0 ? head.slice(0, cut + 1) : `${head.slice(0, max - 1)}…`;
 };
