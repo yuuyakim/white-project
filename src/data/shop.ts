@@ -59,6 +59,11 @@ export const shop = {
   email: 'info@example.com',
   // TODO: 店主に確認
   payments: ['現金', 'PayPay'],
+  /**
+   * Search Console の所有権確認を meta タグ方式で行う場合のみ、発行された content 値を入れる。
+   * DNS TXT レコード方式で確認する場合は空文字のままにする（空ならタグを出力しない）。
+   */
+  googleSiteVerification: '',
   sns: {
     instagram: 'https://www.instagram.com/whiteproject_kakigori/',
     threads: 'https://www.threads.net/@whiteproject_kakigori',
