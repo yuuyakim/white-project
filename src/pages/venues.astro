@@ -4,11 +4,13 @@ import SectionHeading from '../components/SectionHeading.astro';
 import VenueCard from '../components/VenueCard.astro';
 import TodayVenue from '../components/TodayVenue.astro';
 import { shop } from '../data/shop';
+import { shopJsonLd } from '../lib/structuredData';
 ---
 
 <BaseLayout
   title="出店情報"
   description="曜日ごとの出店場所と営業時間のご案内です。名古屋市内の2か所で間借り営業しています。"
+  jsonLd={[shopJsonLd(Astro.site)]}
 >
   <SectionHeading label="Venues" title="出店情報" as="h1" />
 
