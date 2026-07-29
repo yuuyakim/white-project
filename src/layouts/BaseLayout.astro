@@ -10,35 +10,28 @@ type Props = {
   ogImage?: string;
   /** ヒーローなど全幅要素を置くページで true にする */
   wide?: boolean;
-  /** IceCreamShopの構造化データを出すページでのみ true にする（トップページのみ） */
-  structuredData?: boolean;
+  /** このページで出力する JSON-LD。src/lib/structuredData.ts の生成関数で作る */
+  jsonLd?: object[];
   /** 検索エンジンにインデックスさせないページで true にする（404など） */
   noindex?: boolean;
+  /** お知らせ記事など、記事として扱うページで 'article' にする */
+  ogType?: 'website' | 'article';
 };
 
 const {
   title,
   description = shop.description,
-  ogImage = '/ogp.svg',
+  ogImage = '/ogp.png',
   wide = false,
-  structuredData = false,
+  jsonLd = [],
   noindex = false,
+  ogType = 'website',
 } = Astro.props;
 
-const pageTitle = title === shop.name ? `${shop.nameJa}` : `${title} | ${shop.name}`;
+const pageTitle =
+  title === shop.name ? `${shop.nameJa} | ${shop.homeTitleSuffix}` : `${title} | ${shop.name}`;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const ogImageUrl = new URL(ogImage, Astro.site);
-
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'IceCreamShop',
-  name: shop.nameJa,
-  alternateName: shop.name,
-  description: shop.description,
-  url: canonical.href,
-  areaServed: '愛知県名古屋市',
-  sameAs: Object.values(shop.sns).filter(Boolean),
-};
 ---
 
 <!doctype html>
@@ -48,6 +41,11 @@ const jsonLd = {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="canonical" href={canonical.href} />
+    {
+      shop.googleSiteVerification && (
+        <meta name="google-site-verification" content={shop.googleSiteVerification} />
+      )
+    }
     {noindex && <meta name="robots" content="noindex" />}
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -59,14 +57,25 @@ const jsonLd = {
 
     <title>{pageTitle}</title>
     <meta name="description" content={description} />
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={ogType} />
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical.href} />
     <meta property="og:image" content={ogImageUrl.href} />
+    {/* ogImage は props で上書き可能。width/height は現行の /ogp.png (1200x630) 固定値なので、
+        ページが ogImage を上書きするようになったらここも合わせて見直すこと。 */}
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={`${shop.nameJa}のロゴ`} />
     <meta property="og:site_name" content={shop.nameJa} />
+    <meta property="og:locale" content="ja_JP" />
     <meta name="twitter:card" content="summary_large_image" />
-    {structuredData && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline></script>}
+    <meta name="twitter:image" content={ogImageUrl.href} />
+    {
+      jsonLd.map((data) => (
+        <script type="application/ld+json" set:html={JSON.stringify(data)} is:inline></script>
+      ))
+    }
   </head>
   <body>
     <Header />

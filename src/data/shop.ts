@@ -16,6 +16,12 @@ export type Venue = {
   mapUrl: string;
   /** Googleマップの埋め込み用URL */
   mapEmbedUrl: string;
+  /** 構造化データ用の郵便番号。ハイフンあり。未確定なら省く */
+  postalCode?: string;
+  /** 構造化データ用の市区町村。確定しているので必須。例: "名古屋市中区" */
+  addressLocality: string;
+  /** 構造化データ用の番地。未確定なら省く */
+  streetAddress?: string;
   note?: string;
 };
 
@@ -34,6 +40,7 @@ export const venues: Venue[] = [
     open: '18:30',
     close: '21:30',
     address: '愛知県名古屋市（住所確認中）',
+    addressLocality: '名古屋市',
     ...mapLinks('赤鰐 名古屋'),
     note: '夜の営業です。氷がなくなり次第終了します。',
   },
@@ -45,6 +52,7 @@ export const venues: Venue[] = [
     open: '12:00',
     close: '19:00',
     address: '愛知県名古屋市（住所確認中）',
+    addressLocality: '名古屋市',
     ...mapLinks('cafe KAKAOc 名古屋'),
   },
 ];
@@ -59,6 +67,17 @@ export const shop = {
   email: 'info@example.com',
   // TODO: 店主に確認
   payments: ['現金', 'PayPay'],
+  // 店主に確認が取れるまで構造化データには出さない（空文字なら compact() でキーごと省かれる）。
+  // 確認が取れたら値を入れるだけで公開できる。
+  /** 構造化データの priceRange。schema.org は自由文字列を許す */
+  priceRange: '',
+  /** トップページのtitleに付ける地域キーワード。下層ページは `${title} | ${shop.name}` のまま */
+  homeTitleSuffix: '名古屋の間借りかき氷',
+  /**
+   * Search Console の所有権確認を meta タグ方式で行う場合のみ、発行された content 値を入れる。
+   * DNS TXT レコード方式で確認する場合は空文字のままにする（空ならタグを出力しない）。
+   */
+  googleSiteVerification: '',
   sns: {
     instagram: 'https://www.instagram.com/whiteproject_kakigori/',
     threads: 'https://www.threads.net/@whiteproject_kakigori',

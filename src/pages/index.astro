@@ -7,6 +7,7 @@ import SectionHeading from '../components/SectionHeading.astro';
 import MenuCard from '../components/MenuCard.astro';
 import NewsList from '../components/NewsList.astro';
 import { shop } from '../data/shop';
+import { shopJsonLd } from '../lib/structuredData';
 
 const featuredMenu = (await getCollection('menu', ({ data }) => data.available))
   .sort((a, b) => a.data.order - b.data.order)
@@ -17,8 +18,8 @@ const news = (
 ).sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
 ---
 
-<BaseLayout title={shop.name} wide structuredData>
-  <h1 class="u-visually-hidden">{shop.nameJa}</h1>
+<BaseLayout title={shop.name} wide jsonLd={[shopJsonLd(Astro.site)]}>
+  <h1 class="u-visually-hidden">{`名古屋の${shop.nameJa}`}</h1>
 
   <Hero />
 

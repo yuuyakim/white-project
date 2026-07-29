@@ -3,11 +3,24 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import SectionHeading from '../components/SectionHeading.astro';
 import SnsLinks from '../components/SnsLinks.astro';
 import { shop } from '../data/shop';
+import { breadcrumbJsonLd } from '../lib/structuredData';
 
 const mailSubject = encodeURIComponent('お問い合わせ');
+
+const breadcrumb = breadcrumbJsonLd(
+  [
+    { name: 'ホーム', path: '/' },
+    { name: 'お問い合わせ', path: '/contact' },
+  ],
+  Astro.site
+);
 ---
 
-<BaseLayout title="お問い合わせ" description="ご質問、イベント出店のご依頼はこちらから。">
+<BaseLayout
+  title="お問い合わせ"
+  description="名古屋のかき氷専門店 White Project へのお問い合わせ・イベント出店のご依頼はこちらから。"
+  jsonLd={[breadcrumb]}
+>
   <SectionHeading label="Contact" title="お問い合わせ" as="h1" />
 
   <p class="intro">

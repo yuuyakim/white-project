@@ -3,13 +3,22 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import SectionHeading from '../../components/SectionHeading.astro';
 import NewsList from '../../components/NewsList.astro';
+import { breadcrumbJsonLd } from '../../lib/structuredData';
+
+const breadcrumb = breadcrumbJsonLd(
+  [
+    { name: 'ホーム', path: '/' },
+    { name: 'お知らせ', path: '/news' },
+  ],
+  Astro.site
+);
 
 const entries = (
   await getCollection('news', ({ data }) => (import.meta.env.PROD ? !data.draft : true))
 ).sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
 ---
 
-<BaseLayout title="お知らせ" description="出店情報の変更や新メニューのお知らせです。">
+<BaseLayout title="お知らせ" description="出店情報の変更や新メニューのお知らせです。" jsonLd={[breadcrumb]}>
   <SectionHeading label="News" title="お知らせ" as="h1" />
   <NewsList entries={entries} />
 </BaseLayout>

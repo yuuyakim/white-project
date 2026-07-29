@@ -2,6 +2,8 @@
 import BaseLayout from './BaseLayout.astro';
 import type { CollectionEntry } from 'astro:content';
 import { formatDate } from '../lib/formatDate';
+import { excerpt } from '../lib/excerpt';
+import { articleJsonLd, breadcrumbJsonLd } from '../lib/structuredData';
 
 type Props = {
   entry: CollectionEntry<'news'>;
@@ -9,9 +11,23 @@ type Props = {
 
 const { entry } = Astro.props;
 const { title, date, category } = entry.data;
+
+const path = `/news/${entry.id}`;
+// 抜粋が作れないときは従来の日付だけの文言にフォールバックする
+const description = excerpt(entry.body) ?? `${formatDate(date)}のお知らせ`;
+const articleSchema = articleJsonLd({ title, date, category, path, description }, Astro.site);
+
+const breadcrumb = breadcrumbJsonLd(
+  [
+    { name: 'ホーム', path: '/' },
+    { name: 'お知らせ', path: '/news' },
+    { name: title, path },
+  ],
+  Astro.site
+);
 ---
 
-<BaseLayout title={title} description={`${formatDate(date)}のお知らせ`}>
+<BaseLayout title={title} description={description} ogType="article" jsonLd={[articleSchema, breadcrumb]}>
   <article>
     <p class="meta">
       <time class="u-num" datetime={date.toISOString()}>{formatDate(date)}</time>
