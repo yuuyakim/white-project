@@ -19,7 +19,7 @@ const news = (
 ---
 
 <BaseLayout title={shop.name} wide jsonLd={[shopJsonLd(Astro.site)]}>
-  <h1 class="u-visually-hidden">名古屋のかき氷専門店 White Project</h1>
+  <h1 class="u-visually-hidden">{`名古屋の${shop.nameJa}`}</h1>
 
   <Hero />
 
