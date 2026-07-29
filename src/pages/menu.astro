@@ -23,7 +23,11 @@ const groups = [
 ].filter((group) => group.entries.length > 0);
 ---
 
-<BaseLayout title="メニュー" description="かき氷のメニューと価格のご案内です。" jsonLd={[breadcrumb]}>
+<BaseLayout
+  title="メニュー"
+  description="名古屋のかき氷専門店 White Project のメニューと価格。季節の果実を使った一杯をご紹介します。"
+  jsonLd={[breadcrumb]}
+>
   <SectionHeading label="Menu" title="メニュー" as="h1" />
 
   <p class="intro">
