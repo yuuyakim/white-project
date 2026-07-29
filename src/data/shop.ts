@@ -67,9 +67,10 @@ export const shop = {
   email: 'info@example.com',
   // TODO: 店主に確認
   payments: ['現金', 'PayPay'],
-  // TODO: 店主に確認 — 実際の価格帯
+  // 店主に確認が取れるまで構造化データには出さない（空文字なら compact() でキーごと省かれる）。
+  // 確認が取れたら値を入れるだけで公開できる。
   /** 構造化データの priceRange。schema.org は自由文字列を許す */
-  priceRange: '¥1,000〜¥1,800',
+  priceRange: '',
   /** トップページのtitleに付ける地域キーワード。下層ページは `${title} | ${shop.name}` のまま */
   homeTitleSuffix: '名古屋の間借りかき氷',
   /**

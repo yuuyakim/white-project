@@ -17,13 +17,28 @@ const compact = <T extends Record<string, unknown>>(obj: T): T =>
   Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined && v !== '')) as T;
 
 /**
+ * サイト内パスを絶対URLにする。canonical・サイトマップと同じ「末尾スラッシュあり」の形式に揃える
+ * （ルート `/` はそのまま）。`/ogp.png` のような拡張子を持つファイルパスはスラッシュを付けずに返す。
+ */
+const absoluteUrl = (path: string, site: URL | undefined) => {
+  const url = new URL(path, site);
+  const isFile = /\.[a-zA-Z0-9]+$/.test(url.pathname);
+  if (!isFile && !url.pathname.endsWith('/')) {
+    url.pathname += '/';
+  }
+  return url.href;
+};
+
+/**
  * 会場を Place として表す。
  * 間借り先の住所は他店の住所なので、IceCreamShop の address には載せず location に置く。
  * 「（住所確認中）」のような表示用文字列は流し込まず、確定しているフィールドだけを出す。
+ * name は間借り先単独の名前ではなく「屋号（会場名店内）」にする。venue.name のみだと
+ * openingHoursSpecification が間借り先自身の営業時間だと誤読されるため。
  */
 const venuePlace = (venue: Venue) => ({
   '@type': 'Place',
-  name: venue.name,
+  name: `${shop.name}（${venue.name}店内）`,
   address: compact({
     '@type': 'PostalAddress',
     addressCountry: 'JP',
@@ -41,20 +56,21 @@ const venuePlace = (venue: Venue) => ({
 });
 
 /** トップと出店情報ページに出す店舗スキーマ。 */
-export const shopJsonLd = (site: URL | undefined) => ({
-  '@context': 'https://schema.org',
-  '@type': 'IceCreamShop',
-  name: shop.nameJa,
-  alternateName: shop.name,
-  description: shop.description,
-  url: new URL('/', site).href,
-  image: new URL('/ogp.png', site).href,
-  priceRange: shop.priceRange,
-  servesCuisine: 'かき氷',
-  areaServed: '愛知県名古屋市',
-  sameAs: Object.values(shop.sns).filter(Boolean),
-  location: shop.venues.map(venuePlace),
-});
+export const shopJsonLd = (site: URL | undefined) =>
+  compact({
+    '@context': 'https://schema.org',
+    '@type': 'IceCreamShop',
+    name: shop.nameJa,
+    alternateName: shop.name,
+    description: shop.description,
+    url: absoluteUrl('/', site),
+    image: absoluteUrl('/ogp.png', site),
+    priceRange: shop.priceRange,
+    servesCuisine: 'かき氷',
+    areaServed: '愛知県名古屋市',
+    sameAs: Object.values(shop.sns).filter(Boolean),
+    location: shop.venues.map(venuePlace),
+  });
 
 export type BreadcrumbItem = {
   name: string;
@@ -70,7 +86,7 @@ export const breadcrumbJsonLd = (items: BreadcrumbItem[], site: URL | undefined)
     '@type': 'ListItem',
     position: index + 1,
     name: item.name,
-    item: new URL(item.path, site).href,
+    item: absoluteUrl(item.path, site),
   })),
 });
 
@@ -86,7 +102,7 @@ export type ArticleInput = {
 
 /** お知らせ記事のスキーマ。 */
 export const articleJsonLd = (input: ArticleInput, site: URL | undefined) => {
-  const url = new URL(input.path, site).href;
+  const url = absoluteUrl(input.path, site);
   return compact({
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
@@ -98,7 +114,7 @@ export const articleJsonLd = (input: ArticleInput, site: URL | undefined) => {
     articleSection: input.category,
     mainEntityOfPage: { '@type': 'WebPage', '@id': url },
     url,
-    image: new URL('/ogp.png', site).href,
+    image: absoluteUrl('/ogp.png', site),
     author: { '@type': 'Organization', name: shop.nameJa },
     publisher: { '@type': 'Organization', name: shop.nameJa },
   });
